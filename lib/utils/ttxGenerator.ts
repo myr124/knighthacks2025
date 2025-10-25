@@ -51,8 +51,8 @@ export function generateTTX(config: ScenarioConfig): TTXScript {
     minor: { injectSeverity: 'low', numInjects: 2 },
     moderate: { injectSeverity: 'medium', numInjects: 3 },
     major: { injectSeverity: 'high', numInjects: 4 },
-    severe: { injectSeverity: 'high', numInjects: 4 },
-    catastrophic: { injectSeverity: 'critical', numInjects: 5 },
+    severe: { injectSeverity: 'high', numInjects: 5 },
+    catastrophic: { injectSeverity: 'critical', numInjects: 6 },
   };
 
   const sev = severityMap[config.severity];

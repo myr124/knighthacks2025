@@ -136,3 +136,35 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.269 0 0 / 60%);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.269 0 0 / 80%);
+  background-clip: padding-box;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: oklch(0.269 0 0 / 60%) transparent;
+  scrollbar-width: thin;
+}
+
+*:hover {
+  scrollbar-color: oklch(0.269 0 0 / 80%) transparent;
+}

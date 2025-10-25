@@ -30,7 +30,8 @@ const Sidebar: React.FC = () => {
     scenarioType: 'hurricane',
     location: 'Miami-Dade County, FL',
     severity: 'major',
-    population: 2700000
+    population: 2700000,
+    agents: 25
   });
   const [script, setScript] = useState<{
     scenarioType: string;
@@ -110,7 +111,7 @@ const Sidebar: React.FC = () => {
         <div className="mb-4">
           <Button
             variant="outline"
-            className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
+            className="w-full border-gray-800 bg-black hover:bg-linear-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
             onClick={() => window.location.href = '/editor'}
           >
             <Plus className="h-4 w-4 mr-2" />
