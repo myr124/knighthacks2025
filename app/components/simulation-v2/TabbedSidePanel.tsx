@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PersonaListPanel } from "./PersonaListPanel";
 import { AnalyticsSummary } from "./AnalyticsSummary";
-import { BarChart3, Users } from "lucide-react";
+import { BarChart3, Users, MessageCircle } from "lucide-react";
+import { ChatbotPanel } from "./ChatbotPanel";
 
 const tabVariants = {
   hidden: { opacity: 0, x: 20 },
@@ -29,7 +30,7 @@ export function TabbedSidePanel() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
@@ -37,6 +38,10 @@ export function TabbedSidePanel() {
             <TabsTrigger value="personas" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Personas
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Chat
             </TabsTrigger>
           </TabsList>
         </motion.div>
@@ -69,6 +74,21 @@ export function TabbedSidePanel() {
             >
               <TabsContent value="personas" className="m-0 h-full">
                 <PersonaListPanel />
+              </TabsContent>
+            </motion.div>
+          )}
+          {activeTab === "chat" && (
+            <motion.div
+              key="chat"
+              variants={tabVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={{ duration: 0.3 }}
+              className="flex-1 overflow-hidden"
+            >
+              <TabsContent value="chat" className="m-0 h-full">
+                <ChatbotPanel />
               </TabsContent>
             </motion.div>
           )}

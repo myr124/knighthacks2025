@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
+import { GripVertical } from "lucide-react";
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { ConsolidatedHeader } from "@/app/components/simulation-v2/ConsolidatedHeader";
 import { TabbedSidePanel } from "@/app/components/simulation-v2/TabbedSidePanel";
 import { PersonaDetailDialog } from "@/app/components/simulation-v2/PersonaDetailDialog";
@@ -60,37 +62,45 @@ export default function SimulationV2Page() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden p-4 gap-4">
-        <motion.div
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <SituationSummaryPanel />
-        </motion.div>
+        <PanelGroup direction="horizontal">
+          <Panel defaultSize={30} minSize={30} maxSize={50}>
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="h-full"
+            >
+              <SituationSummaryPanel />
+            </motion.div>
+          </Panel>
+          <PanelResizeHandle className="w-4 flex items-center justify-center">
+            <GripVertical className="h-4 w-4 text-gray-400" />
+          </PanelResizeHandle>
+          <Panel defaultSize={75} minSize={25}>
+            {/* Center: Map + Event Feed */}
+            <div className="flex-1 flex flex-col overflow-hidden h-full">
+              {/* Map */}
+              <motion.div
+                className="flex-1 relative border rounded-xl overflow-hidden"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <PeriodMapView />
+              </motion.div>
 
-        {/* Center: Map + Event Feed */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Map */}
-          <motion.div
-            className="flex-1 relative border rounded-xl overflow-hidden"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <PeriodMapView />
-          </motion.div>
-
-          {/* Bottom: Injects & Actions Feed */}
-          <motion.div
-            className="h-64 mt-2 bg-background"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <InjectsAndEOCsFeed />
-          </motion.div>
-        </div>
-
+              {/* Bottom: Injects & Actions Feed */}
+              <motion.div
+                className="h-64 mt-2 bg-background"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <InjectsAndEOCsFeed />
+              </motion.div>
+            </div>
+          </Panel>
+        </PanelGroup>
         {/* Right: Tabbed Side Panel */}
         <motion.div
           initial={{ x: 20, opacity: 0 }}

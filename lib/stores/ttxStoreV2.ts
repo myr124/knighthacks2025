@@ -8,6 +8,8 @@ interface TTXStoreV2 {
   personaLocationData: Map<string, PersonaMapData>;
   currentPeriod: number;
   isGenerating: boolean;
+  isGeneratingSummaries: boolean;
+  aiSummaries: Map<number, string>;
   selectedPersonaId: string | null;
   selectedEvent: Inject | EOCAction | null;
 
@@ -20,6 +22,8 @@ interface TTXStoreV2 {
   getPersonaHistory: (personaId: string) => PersonaResponse[];
   setSelectedPersona: (personaId: string | null) => void;
   setSelectedEvent: (event: Inject | EOCAction | null) => void;
+  initializeScenario: () => Promise<void>;
+  generateSummaryForPeriod: (periodNumber: number) => Promise<void>;
 }
 
 // Persona types
@@ -352,6 +356,8 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
     personaLocationData: locationMap,
     currentPeriod: 1,
     isGenerating: false,
+    isGeneratingSummaries: false,
+    aiSummaries: new Map<number, string>(),
     selectedPersonaId: null,
     selectedEvent: null,
 
@@ -365,11 +371,44 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
     },
 
     generateScenario: async (actionPlan) => {
-      set({ isGenerating: true });
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate 30s generation
+      set({ isGenerating: true, isGeneratingSummaries: false });
 
-      const scenario = generateMockScenario(get().personaLocationData);
-      set({ scenario, isGenerating: false, currentPeriod: 1 });
+      try {
+        const response = await fetch('/api/ttx/generate-scenario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            scenarioId: 'scenario-1',
+            scenarioType: 'hurricane',
+            location: 'Orlando, FL',
+            actionPlan: actionPlan || {
+              periods: Array.from({ length: 12 }, (_, i) => ({
+                periodNumber: i + 1,
+                injects: [],
+                actions: []
+              }))
+            }
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API responded with status ${response.status}`);
+        }
+
+        const scenario = await response.json();
+        set({ scenario, isGenerating: false, currentPeriod: 1 });
+
+      } catch (error) {
+        console.error('Error generating scenario:', error);
+        set({ isGenerating: false, isGeneratingSummaries: false });
+
+        // Fallback to local mock generation if API fails
+        console.log('Falling back to local mock generation...');
+        const scenario = generateMockScenario(get().personaLocationData);
+        set({ scenario, isGenerating: false, currentPeriod: 1 });
+      }
     },
 
     nextPeriod: () => {
@@ -397,10 +436,68 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
 
     setSelectedPersona: (personaId: string | null) => set({ selectedPersonaId: personaId }),
 
-    setSelectedEvent: (event: Inject | EOCAction | null) => set({ selectedEvent: event })
+    setSelectedEvent: (event: Inject | EOCAction | null) => set({ selectedEvent: event }),
+
+    initializeScenario: async () => {
+      get().generateScenario(null);
+    },
+
+    generateSummaryForPeriod: async (periodNumber: number) => {
+      set({ isGeneratingSummaries: true });
+      const { scenario, aiSummaries } = get();
+
+      if (!scenario) {
+        set({ isGeneratingSummaries: false });
+        return;
+      }
+
+      const periodResult = scenario.periodResults.find(pr => pr.periodNumber === periodNumber);
+
+      if (!periodResult) {
+        set({ isGeneratingSummaries: false });
+        return;
+      }
+
+      try {
+        const summaryResponse = await fetch('/api/ttx/generate-summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            periodNumber: periodResult.periodNumber,
+            personaResponses: periodResult.personaResponses,
+            criticalIssues: periodResult.aggregates.criticalIssues,
+            injects: periodResult.injects,
+            eocActions: periodResult.eocActions,
+          }),
+        });
+
+        if (summaryResponse.ok) {
+          const summaryData = await summaryResponse.json();
+          const newAiSummaries = new Map(aiSummaries);
+          newAiSummaries.set(periodNumber, summaryData.summary);
+          set({ aiSummaries: newAiSummaries });
+        } else {
+          console.error(`Failed to generate summary for period ${periodNumber}`);
+          const newAiSummaries = new Map(aiSummaries);
+          newAiSummaries.set(periodNumber, 'Error generating summary.');
+          set({ aiSummaries: newAiSummaries });
+        }
+      } catch (error) {
+        console.error(`Error calling generate-summary for period ${periodNumber}:`, error);
+        const newAiSummaries = new Map(aiSummaries);
+        newAiSummaries.set(periodNumber, 'Error generating summary.');
+        set({ aiSummaries: newAiSummaries });
+      } finally {
+        set({ isGeneratingSummaries: false });
+      }
+    },
   };
 });
 
-// Initialize with mock scenario
-const initialLocationMap = generateAllPersonaLocations();
-useTTXStoreV2.setState({ scenario: generateMockScenario(initialLocationMap) });
+
+
+// Start initialization
+// initializeScenario();
+useTTXStoreV2.getState().initializeScenario();

@@ -97,11 +97,34 @@ export function PersonaDetailDialog() {
             </Card>
             </motion.div>
 
+            {/* Bio */}
+            {persona.bio && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Background
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {persona.bio}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
             {/* Demographics */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
+              transition={{ duration: 0.3, delay: persona.bio ? 0.3 : 0.2 }}
             >
             <Card>
               <CardHeader className="pb-3">
@@ -165,7 +188,7 @@ export function PersonaDetailDialog() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
+              transition={{ duration: 0.3, delay: persona.bio ? 0.4 : 0.3 }}
             >
             <Card>
               <CardHeader className="pb-3">
@@ -192,7 +215,7 @@ export function PersonaDetailDialog() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
+                transition={{ duration: 0.3, delay: persona.bio ? 0.5 : 0.4 }}
               >
               <Card>
                 <CardHeader className="pb-3">
@@ -219,7 +242,7 @@ export function PersonaDetailDialog() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
+              transition={{ duration: 0.3, delay: persona.bio ? 0.6 : 0.5 }}
             >
             <Card>
               <CardHeader className="pb-3">

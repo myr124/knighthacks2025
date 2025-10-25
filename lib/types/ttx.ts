@@ -67,6 +67,7 @@ export interface PersonaResponse {
   personaId: string;
   personaType: string;
   personaName: string;
+  bio?: string; // Background story/description from ADK
   demographics: PersonaDemographics;
   decision: 'stay_home' | 'evacuate' | 'shelter_in_place' | 'help_neighbors' | 'gather_info' | 'wait_and_see';
   sentiment: 'calm' | 'concerned' | 'anxious' | 'panicked' | 'skeptical' | 'defiant';

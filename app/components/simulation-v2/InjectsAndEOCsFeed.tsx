@@ -99,10 +99,10 @@ export function InjectsAndEOCsFeed() {
   });
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-2">
+    <div className="h-full flex flex-col bg-background border rounded-xl">
+      <div className="p-2 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">Event Feed</CardTitle>
+          <h3 className="text-sm font-medium px-2">Event Feed</h3>
           <Tabs value={filter} onValueChange={setFilter}>
             <TabsList className="grid grid-cols-3">
               <TabsTrigger value="all">
@@ -120,8 +120,8 @@ export function InjectsAndEOCsFeed() {
             </TabsList>
           </Tabs>
         </div>
-      </CardHeader>
-      <CardContent className="p-0 flex-1 overflow-hidden">
+      </div>
+      <div className="p-0 flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto px-3">
           <div className="space-y-3 py-2">
             <AnimatePresence mode="popLayout">
@@ -133,7 +133,7 @@ export function InjectsAndEOCsFeed() {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   layout
-                  className="flex gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="flex gap-3 p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
                   onClick={() => setSelectedEvent(event)}
                   whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
@@ -178,7 +178,7 @@ export function InjectsAndEOCsFeed() {
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
