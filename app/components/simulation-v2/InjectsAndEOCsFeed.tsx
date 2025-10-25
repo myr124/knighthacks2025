@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle, List } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnimatedCounter } from "./AnimatedCounter";
 
 const getEventColor = (
   event:
@@ -105,15 +107,15 @@ export function InjectsAndEOCsFeed() {
             <TabsList className="grid grid-cols-3">
               <TabsTrigger value="all">
                 <List className="h-4 w-4 mr-1" />
-                All ({combinedEvents.length})
+                All (<AnimatedCounter value={combinedEvents.length} duration={0.3} />)
               </TabsTrigger>
               <TabsTrigger value="inject">
                 <AlertTriangle className="h-4 w-4 mr-1" />
-                Injects ({injects.length})
+                Injects (<AnimatedCounter value={injects.length} duration={0.3} />)
               </TabsTrigger>
               <TabsTrigger value="eocAction">
                 <CheckCircle className="h-4 w-4 mr-1" />
-                Actions ({eocActions.length})
+                Actions (<AnimatedCounter value={eocActions.length} duration={0.3} />)
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -122,44 +124,57 @@ export function InjectsAndEOCsFeed() {
       <CardContent className="p-0 flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto px-3">
           <div className="space-y-3 py-2">
-            {filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                className="flex gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                onClick={() => setSelectedEvent(event)}
-              >
-                <div
-                  className={`w-1 rounded-full ${getEventColor(
-                    event
-                  )} flex-shrink-0`}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] font-mono py-0 h-4"
-                    >
-                      {event.time}
-                    </Badge>
-                    <Badge
-                      variant={
-                        event.eventType === "inject" ? "default" : "secondary"
-                      }
-                      className="text-xs px-1.5 py-0"
-                    >
-                      {event.eventType === "inject" ? "INJECT" : "EOC ACTION"}
-                    </Badge>
+            <AnimatePresence mode="popLayout">
+              {filteredEvents.map((event, index) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  layout
+                  className="flex gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedEvent(event)}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div
+                    className={`w-1 rounded-full ${getEventColor(
+                      event
+                    )} flex-shrink-0`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-mono py-0 h-4"
+                      >
+                        {event.time}
+                      </Badge>
+                      <Badge
+                        variant={
+                          event.eventType === "inject" ? "default" : "secondary"
+                        }
+                        className="text-xs px-1.5 py-0"
+                      >
+                        {event.eventType === "inject" ? "INJECT" : "EOC ACTION"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm leading-tight font-medium">
+                      {event.eventType === "inject" ? event.title : event.details}{" "}
+                    </p>
                   </div>
-                  <p className="text-sm leading-tight font-medium">
-                    {event.eventType === "inject" ? event.title : event.details}{" "}
-                  </p>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {filteredEvents.length === 0 && (
-              <div className="text-center text-sm text-muted-foreground py-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-sm text-muted-foreground py-4"
+              >
                 No events for this filter.
-              </div>
+              </motion.div>
             )}
           </div>
         </div>

@@ -1,10 +1,12 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Home, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
+import { AnimatedCounter } from "./AnimatedCounter";
 import Link from "next/link";
 
 const PHASE_COLORS = {
@@ -123,7 +125,7 @@ export function ConsolidatedHeader() {
             </Button>
 
             <div className="px-3 py-1 bg-accent rounded text-sm font-medium min-w-[80px] text-center">
-              {currentPeriod} / {scenario.periodResults.length}
+              <AnimatedCounter value={currentPeriod} duration={0.3} /> / {scenario.periodResults.length}
             </div>
 
             <Button
@@ -169,15 +171,23 @@ export function ConsolidatedHeader() {
             const isPast = periodNum < currentPeriod;
 
             return (
-              <div
+              <motion.div
                 key={periodNum}
-                className={`flex-1 h-1 transition-all ${
+                className={`flex-1 h-1 ${
                   isActive
                     ? "bg-primary"
                     : isPast
                     ? "bg-primary/50"
                     : "bg-accent"
                 }`}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{
+                  duration: 0.5,
+                  delay: index * 0.05,
+                  ease: "easeOut",
+                }}
+                style={{ originX: 0 }}
               />
             );
           })}

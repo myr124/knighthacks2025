@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getDemographicLabel } from "@/lib/utils/personaDemographics";
+import { AnimatedCounter } from "./AnimatedCounter";
 import type { PersonaResponse } from "@/lib/types/ttx";
 import { Users, Filter, X } from "lucide-react";
 
@@ -124,7 +126,9 @@ export function PersonaListPanel() {
                 }`}
               />
               <span className="capitalize">{sentiment}</span>
-              <span className="text-muted-foreground">({count})</span>
+              <span className="text-muted-foreground">
+                (<AnimatedCounter value={count} />)
+              </span>
             </div>
           ))}
         </div>
@@ -261,98 +265,115 @@ export function PersonaListPanel() {
       {/* Persona List */}
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
-          {filteredPersonas.length === 0 ? (
-            <div className="text-center text-sm text-muted-foreground py-8">
-              No personas match current filters
-            </div>
-          ) : (
-            filteredPersonas.map((persona) => (
-              <Card
-                key={persona.personaId}
-                className={`hover:shadow-md transition-shadow cursor-pointer border-l-4 ${
-                  LOCATION_COLORS[persona.location]
-                }`}
-                onClick={() => setSelectedPersona(persona.personaId)}
+          <AnimatePresence mode="popLayout">
+            {filteredPersonas.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="text-center text-sm text-muted-foreground py-8"
               >
-                <CardContent className="p-3">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">
-                        {persona.personaName}
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        {persona.personaType}
+                No personas match current filters
+              </motion.div>
+            ) : (
+              filteredPersonas.map((persona, index) => (
+                <motion.div
+                  key={persona.personaId}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3, delay: index * 0.03 }}
+                  layout
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Card
+                    className={`hover:shadow-md transition-shadow cursor-pointer border-l-4 ${
+                      LOCATION_COLORS[persona.location]
+                    }`}
+                    onClick={() => setSelectedPersona(persona.personaId)}
+                  >
+                    <CardContent className="p-3">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm truncate">
+                            {persona.personaName}
+                          </h4>
+                          <p className="text-xs text-muted-foreground">
+                            {persona.personaType}
+                          </p>
+                        </div>
+                        <Badge
+                          className={`${
+                            SENTIMENT_COLORS[persona.sentiment]
+                          } text-white text-xs ml-2`}
+                        >
+                          {persona.sentiment}
+                        </Badge>
+                      </div>
+
+                      {/* Demographics */}
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs mb-2">
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">Age:</span>
+                          <span>{persona.demographics.age}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">Race:</span>
+                          <span className="capitalize">
+                            {persona.demographics.race}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">Income:</span>
+                          <span>
+                            {
+                              getDemographicLabel(
+                                "socialStatus",
+                                persona.demographics.socialStatus
+                              ).split(" ")[0]
+                            }
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">Trust:</span>
+                          <span>
+                            {
+                              getDemographicLabel(
+                                "trustInGovernment",
+                                persona.demographics.trustInGovernment
+                              ).split(" ")[0]
+                            }
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Decision & Location */}
+                      <div className="flex items-center gap-2 text-xs">
+                        <Badge variant="outline" className="capitalize">
+                          {persona.decision.replace("_", " ")}
+                        </Badge>
+                        <Badge variant="secondary" className="capitalize">
+                          {persona.location.replace("_", " ")}
+                        </Badge>
+                        {persona.needsAssistance && (
+                          <Badge variant="destructive" className="text-xs">
+                            Help Needed
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Reasoning Preview */}
+                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                        {persona.reasoning}
                       </p>
-                    </div>
-                    <Badge
-                      className={`${
-                        SENTIMENT_COLORS[persona.sentiment]
-                      } text-white text-xs ml-2`}
-                    >
-                      {persona.sentiment}
-                    </Badge>
-                  </div>
-
-                  {/* Demographics */}
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs mb-2">
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">Age:</span>
-                      <span>{persona.demographics.age}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">Race:</span>
-                      <span className="capitalize">
-                        {persona.demographics.race}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">Income:</span>
-                      <span>
-                        {
-                          getDemographicLabel(
-                            "socialStatus",
-                            persona.demographics.socialStatus
-                          ).split(" ")[0]
-                        }
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">Trust:</span>
-                      <span>
-                        {
-                          getDemographicLabel(
-                            "trustInGovernment",
-                            persona.demographics.trustInGovernment
-                          ).split(" ")[0]
-                        }
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Decision & Location */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <Badge variant="outline" className="capitalize">
-                      {persona.decision.replace("_", " ")}
-                    </Badge>
-                    <Badge variant="secondary" className="capitalize">
-                      {persona.location.replace("_", " ")}
-                    </Badge>
-                    {persona.needsAssistance && (
-                      <Badge variant="destructive" className="text-xs">
-                        Help Needed
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Reasoning Preview */}
-                  <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                    {persona.reasoning}
-                  </p>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
         </div>
       </ScrollArea>
     </div>

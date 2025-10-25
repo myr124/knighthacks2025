@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -42,15 +43,27 @@ export function SituationSummaryPanel() {
   return (
     <Card className="w-80 flex flex-col">
       <CardHeader>
-        <CardTitle className="text-lg font-bold">Situation Summary</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {operationalPeriod.label}
-        </p>
+        <motion.div
+          key={`header-${currentPeriod}`}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <CardTitle className="text-lg font-bold">Situation Summary</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {operationalPeriod.label}
+          </p>
+        </motion.div>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
         <div className="space-y-6">
           {/* AI Summary */}
-          <div>
+          <motion.div
+            key={`summary-${currentPeriod}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
               <Cpu className="h-5 w-5 text-purple-500" />
               AI Summary
@@ -58,12 +71,17 @@ export function SituationSummaryPanel() {
             <p className="text-sm text-muted-foreground italic">
               {getMockSummary(currentPeriod)}
             </p>
-          </div>
+          </motion.div>
 
           <Separator />
 
           {/* Critical Issues */}
-          <div>
+          <motion.div
+            key={`issues-${currentPeriod}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-red-500" />
               Critical Issues
@@ -71,7 +89,14 @@ export function SituationSummaryPanel() {
             {aggregates.criticalIssues.length > 0 ? (
               <ul className="space-y-2 list-disc list-inside text-sm text-red-500">
                 {aggregates.criticalIssues.map((issue, i) => (
-                  <li key={i}>{issue}</li>
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 + i * 0.1 }}
+                  >
+                    {issue}
+                  </motion.li>
                 ))}
               </ul>
             ) : (
@@ -79,7 +104,7 @@ export function SituationSummaryPanel() {
                 No critical issues identified.
               </p>
             )}
-          </div>
+          </motion.div>
         </div>
       </CardContent>
     </Card>
