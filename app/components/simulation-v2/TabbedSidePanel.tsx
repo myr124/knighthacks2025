@@ -1,16 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PersonaListPanel } from './PersonaListPanel';
-import { AnalyticsSummary } from './AnalyticsSummary';
-import { BarChart3, Users } from 'lucide-react';
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PersonaListPanel } from "./PersonaListPanel";
+import { AnalyticsSummary } from "./AnalyticsSummary";
+import { BarChart3, Users } from "lucide-react";
 
 export function TabbedSidePanel() {
   return (
-    <div className="w-96 bg-background border-l flex flex-col h-full">
-      <Tabs defaultValue="analytics" className="flex-1 flex flex-col overflow-hidden">
-        <div className="border-b px-4 py-2 flex-shrink-0">
+    <div className="w-96 bg-background border rounded-xl flex flex-col h-full">
+      <Tabs
+        defaultValue="analytics"
+        className="flex-1 flex flex-col overflow-hidden"
+      >
+        <div className="border-b px-4 py-2 shrink-0">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />

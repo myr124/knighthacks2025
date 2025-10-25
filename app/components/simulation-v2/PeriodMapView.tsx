@@ -138,22 +138,21 @@ function AnimatedPersonaMarker({ persona, onClick }: { persona: PersonaResponse;
   );
 }
 
-function MapController() {
-  const map = useMap();
-
-  useEffect(() => {
-    map.setView([25.7617, -80.1918], 11);
-  }, [map]);
-
-  return null;
-}
 
 export function PeriodMapView() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const scenario = useTTXStoreV2((state) => state.scenario);
   const currentPeriod = useTTXStoreV2((state) => state.currentPeriod);
   const setSelectedPersona = useTTXStoreV2((state) => state.setSelectedPersona);
 
-  if (!scenario) return null;
+  if (!isClient || !scenario) {
+    return <div className="w-full h-full bg-accent animate-pulse" />;
+  }
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
   const personas = currentResult.personaResponses;
@@ -172,7 +171,7 @@ export function PeriodMapView() {
         className="w-full h-full"
         zoomControl={true}
       >
-        <MapController />
+
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -202,7 +201,7 @@ export function PeriodMapView() {
       </MapContainer>
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border text-xs z-[1000]">
+      <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border text-xs z-[1000]">
         <div className="font-semibold mb-2">Persona Status</div>
         {Object.entries(LOCATION_COLORS).map(([status, color]) => {
           const count = locationCounts[status as PersonaResponse['location']] || 0;

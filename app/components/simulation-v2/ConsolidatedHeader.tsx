@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Home, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
+import { ThemeToggle } from "@/app/components/ThemeToggle";
 import Link from "next/link";
 
 const PHASE_COLORS = {
@@ -75,9 +76,9 @@ export function ConsolidatedHeader() {
             <p className="text-xs text-muted-foreground">{op.label}</p>
           </div> */}
 
-          {/* <Badge className={`${PHASE_COLORS[op.phase]} text-white`}>
+          <Badge className={`${PHASE_COLORS[op.phase]} text-white`}>
             {op.phase.charAt(0).toUpperCase() + op.phase.slice(1)}
-          </Badge> */}
+          </Badge>
         </div>
 
         {/* Right: Time Info + Controls */}
@@ -154,6 +155,8 @@ export function ConsolidatedHeader() {
               </>
             )}
           </Button>
+
+          <ThemeToggle />
         </div>
       </div>
 

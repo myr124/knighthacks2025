@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useTTXStoreV2 } from '@/lib/stores/ttxStoreV2';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
 import {
   Users,
   AlertTriangle,
   Home,
   TrendingUp,
   Activity,
-  MapPin
-} from 'lucide-react';
+  MapPin,
+} from "lucide-react";
 
 export function AnalyticsSummary() {
   const scenario = useTTXStoreV2((state) => state.scenario);
@@ -23,9 +23,21 @@ export function AnalyticsSummary() {
   const aggregates = currentResult.aggregates;
 
   // Calculate percentages
-  const evacuationRate = ((aggregates.decisions.evacuate + aggregates.locations.evacuating + aggregates.locations.shelter) / aggregates.totalPersonas * 100).toFixed(0);
-  const atHomeRate = (aggregates.locations.home / aggregates.totalPersonas * 100).toFixed(0);
-  const needsAssistanceRate = (aggregates.needingAssistance / aggregates.totalPersonas * 100).toFixed(0);
+  const evacuationRate = (
+    ((aggregates.decisions.evacuate +
+      aggregates.locations.evacuating +
+      aggregates.locations.shelter) /
+      aggregates.totalPersonas) *
+    100
+  ).toFixed(0);
+  const atHomeRate = (
+    (aggregates.locations.home / aggregates.totalPersonas) *
+    100
+  ).toFixed(0);
+  const needsAssistanceRate = (
+    (aggregates.needingAssistance / aggregates.totalPersonas) *
+    100
+  ).toFixed(0);
 
   // Sentiment breakdown
   const calmCount = aggregates.sentiments.calm || 0;
@@ -39,7 +51,38 @@ export function AnalyticsSummary() {
   const negativeCount = anxiousCount + panickedCount;
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="flex flex-col justify-between h-full p-4">
+      {/* Sentiment Analysis */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Population Sentiment
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-lg font-bold text-green-600">
+                {positiveCount}
+              </div>
+              <div className="text-xs text-muted-foreground">Calm</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-yellow-600">
+                {neutralCount}
+              </div>
+              <div className="text-xs text-muted-foreground">Neutral</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-red-600">
+                {negativeCount}
+              </div>
+              <div className="text-xs text-muted-foreground">Distressed</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-2 gap-3">
         <Card>
@@ -63,8 +106,12 @@ export function AnalyticsSummary() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aggregates.needingAssistance}</div>
-            <p className="text-xs text-muted-foreground">{needsAssistanceRate}% of population</p>
+            <div className="text-2xl font-bold">
+              {aggregates.needingAssistance}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {needsAssistanceRate}% of population
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -81,7 +128,9 @@ export function AnalyticsSummary() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm">At Home</span>
-              <span className="text-sm font-medium">{aggregates.locations.home} ({atHomeRate}%)</span>
+              <span className="text-sm font-medium">
+                {aggregates.locations.home} ({atHomeRate}%)
+              </span>
             </div>
             <Progress value={Number(atHomeRate)} className="h-2" />
           </div>
@@ -89,17 +138,32 @@ export function AnalyticsSummary() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm">Evacuating</span>
-              <span className="text-sm font-medium">{aggregates.locations.evacuating}</span>
+              <span className="text-sm font-medium">
+                {aggregates.locations.evacuating}
+              </span>
             </div>
-            <Progress value={(aggregates.locations.evacuating / aggregates.totalPersonas * 100)} className="h-2" />
+            <Progress
+              value={
+                (aggregates.locations.evacuating / aggregates.totalPersonas) *
+                100
+              }
+              className="h-2"
+            />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm">At Shelter</span>
-              <span className="text-sm font-medium">{aggregates.locations.shelter}</span>
+              <span className="text-sm font-medium">
+                {aggregates.locations.shelter}
+              </span>
             </div>
-            <Progress value={(aggregates.locations.shelter / aggregates.totalPersonas * 100)} className="h-2" />
+            <Progress
+              value={
+                (aggregates.locations.shelter / aggregates.totalPersonas) * 100
+              }
+              className="h-2"
+            />
           </div>
 
           <div className="pt-2 border-t">
@@ -111,45 +175,7 @@ export function AnalyticsSummary() {
         </CardContent>
       </Card>
 
-      {/* Sentiment Analysis */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Population Sentiment
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div>
-              <div className="text-lg font-bold text-green-600">{positiveCount}</div>
-              <div className="text-xs text-muted-foreground">Calm</div>
-            </div>
-            <div>
-              <div className="text-lg font-bold text-yellow-600">{neutralCount}</div>
-              <div className="text-xs text-muted-foreground">Neutral</div>
-            </div>
-            <div>
-              <div className="text-lg font-bold text-red-600">{negativeCount}</div>
-              <div className="text-xs text-muted-foreground">Distressed</div>
-            </div>
-          </div>
-
-          <div className="space-y-2 pt-2 border-t">
-            {Object.entries(aggregates.sentiments)
-              .filter(([_, count]) => count > 0)
-              .sort(([, a], [, b]) => b - a)
-              .map(([sentiment, count]) => (
-                <div key={sentiment} className="flex items-center justify-between text-sm">
-                  <span className="capitalize">{sentiment}</span>
-                  <Badge variant="outline">{count}</Badge>
-                </div>
-              ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Critical Issues */}
+      {/* Critical Issues
       {aggregates.criticalIssues.length > 0 && (
         <Card className="border-orange-500">
           <CardHeader className="pb-3">
@@ -169,9 +195,9 @@ export function AnalyticsSummary() {
             </ul>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
-      {/* Decision Breakdown */}
+      {/* Decision Breakdown
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -185,14 +211,19 @@ export function AnalyticsSummary() {
               .filter(([_, count]) => count > 0)
               .sort(([, a], [, b]) => b - a)
               .map(([decision, count]) => (
-                <div key={decision} className="flex items-center justify-between text-sm">
-                  <span className="capitalize">{decision.replace('_', ' ')}</span>
+                <div
+                  key={decision}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="capitalize">
+                    {decision.replace("_", " ")}
+                  </span>
                   <Badge variant="secondary">{count}</Badge>
                 </div>
               ))}
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
