@@ -2,6 +2,7 @@ import Sidebar from "./components/Sidebar";
 import MetricsPanel from "./components/MetricsPanel";
 import Globe from "./components/Globe";
 import ChatBox from "./components/ChatBox";
+import Header from "./components/Header"
 
 export default function Home() {
   return (

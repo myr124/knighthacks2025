@@ -3,6 +3,7 @@ export interface ScenarioConfig {
   location: string;
   severity: 'minor' | 'moderate' | 'major' | 'severe' | 'catastrophic';
   population: number;
+  agents: number;
 }
 
 export interface Inject {
@@ -50,6 +51,7 @@ export function generateTTX(config: ScenarioConfig): TTXScript {
     minor: { injectSeverity: 'low', numInjects: 2 },
     moderate: { injectSeverity: 'medium', numInjects: 3 },
     major: { injectSeverity: 'high', numInjects: 4 },
+    severe: { injectSeverity: 'high', numInjects: 4 },
     catastrophic: { injectSeverity: 'critical', numInjects: 5 },
   };
 
@@ -59,14 +61,14 @@ export function generateTTX(config: ScenarioConfig): TTXScript {
     {
       id: 'op-1',
       periodNumber: 1,
-      label: 'Pre-Event Planning',
+      label: 't-0 - t-12',
       phase: 'planning' as const,
       injects: Array.from({ length: sev.numInjects }, (_, i) => ({
         id: `inj-${i + 1}`,
         time: `00:${String(i * 15).padStart(2, '0')}`,
         severity: sev.injectSeverity,
         type: 'weather_update',
-        title: `${config.scenarioType} Alert ${i + 1}`,
+        title: `${config.scenarioType.charAt(0).toUpperCase() + config.scenarioType.slice(1)} Alert ${i + 1}`,
         description: `Initial ${config.scenarioType} warnings for ${config.location}. Expected impact on ${config.population.toLocaleString()} residents.`,
       })),
       eocActions: [
@@ -82,14 +84,14 @@ export function generateTTX(config: ScenarioConfig): TTXScript {
     {
       id: 'op-2',
       periodNumber: 2,
-      label: 'Event Response',
+      label: 't-12 - t-24',
       phase: 'response' as const,
       injects: Array.from({ length: sev.numInjects }, (_, i) => ({
         id: `inj-${sev.numInjects + i + 1}`,
         time: `01:${String(i * 20).padStart(2, '0')}`,
         severity: sev.injectSeverity,
         type: 'emergency_alert',
-        title: `${config.severity} ${config.scenarioType} Impact`,
+        title: `${config.severity.charAt(0).toUpperCase() + config.severity.slice(1)} ${config.scenarioType.charAt(0).toUpperCase() + config.scenarioType.slice(1)} Impact`,
         description: `Major impacts reported in ${config.location}. Evacuation considerations for high-risk areas.`,
       })),
       eocActions: [
@@ -107,7 +109,7 @@ export function generateTTX(config: ScenarioConfig): TTXScript {
     {
       id: 'op-3',
       periodNumber: 3,
-      label: 'Post-Event Recovery',
+      label: 't-24 - t-36',
       phase: 'recovery' as const,
       injects: Array.from({ length: 2 }, (_, i) => ({
         id: `inj-final-${i + 1}`,
