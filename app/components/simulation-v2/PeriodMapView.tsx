@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useTheme } from 'next-themes';
 import L from 'leaflet';
 import { useTTXStoreV2 } from '@/lib/stores/ttxStoreV2';
+import { AnimatedCounter } from './AnimatedCounter';
 import type { PersonaResponse } from '@/lib/types/ttx';
 import 'leaflet/dist/leaflet.css';
 
@@ -139,6 +141,33 @@ function AnimatedPersonaMarker({ persona, onClick }: { persona: PersonaResponse;
 }
 
 
+// Component to handle theme-based tile layer switching
+function ThemeTileLayer() {
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use resolvedTheme to handle 'system' theme
+  const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark');
+
+  return (
+    <TileLayer
+      key={isDark ? 'dark' : 'light'}
+      attribution={isDark
+        ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }
+      url={isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      }
+    />
+  );
+}
+
 export function PeriodMapView() {
   const [isClient, setIsClient] = useState(false);
 
@@ -172,10 +201,7 @@ export function PeriodMapView() {
         zoomControl={true}
       >
 
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <ThemeTileLayer />
 
         {/* Hurricane landfall marker */}
         <Marker position={[25.8, -80.2]}>
@@ -216,12 +242,14 @@ export function PeriodMapView() {
               <span className="capitalize text-muted-foreground flex-1">
                 {status.replace('_', ' ')}
               </span>
-              <span className="font-mono font-semibold">{count}</span>
+              <span className="font-mono font-semibold">
+                <AnimatedCounter value={count} duration={0.5} />
+              </span>
             </div>
           );
         })}
         <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-          Total: {personas.length} personas
+          Total: <AnimatedCounter value={personas.length} duration={0.5} /> personas
         </div>
       </div>
     </div>

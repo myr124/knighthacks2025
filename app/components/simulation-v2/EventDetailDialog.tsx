@@ -1,6 +1,7 @@
 
 'use client';
 
+import { motion } from 'framer-motion';
 import { useTTXStoreV2 } from '@/lib/stores/ttxStoreV2';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -28,43 +29,73 @@ export function EventDetailDialog() {
           </DialogTitle>
         </DialogHeader>
         <div className="py-4 space-y-4">
-          <div className="space-y-1">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="space-y-1"
+          >
             <h4 className="text-sm font-semibold">Time</h4>
             <p className="text-sm text-muted-foreground font-mono">{selectedEvent.time}</p>
-          </div>
-          <div className="space-y-1">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="space-y-1"
+          >
             <h4 className="text-sm font-semibold">{isInject ? 'Title' : 'Details'}</h4>
             <p className="text-sm text-muted-foreground">
               {isInject ? selectedEvent.title : selectedEvent.details}
             </p>
-          </div>
+          </motion.div>
           {isInject && selectedEvent.description && (
-            <div className="space-y-1">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              className="space-y-1"
+            >
               <h4 className="text-sm font-semibold">Description</h4>
               <p className="text-sm text-muted-foreground">{selectedEvent.description}</p>
-            </div>
+            </motion.div>
           )}
           {isInject && selectedEvent.severity && (
-            <div className="space-y-1">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+              className="space-y-1"
+            >
               <h4 className="text-sm font-semibold">Severity</h4>
               <Badge variant={selectedEvent.severity === 'critical' ? 'destructive' : 'secondary'}>
                 {selectedEvent.severity}
               </Badge>
-            </div>
+            </motion.div>
           )}
           {!isInject && selectedEvent.urgency && (
-            <div className="space-y-1">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              className="space-y-1"
+            >
               <h4 className="text-sm font-semibold">Urgency</h4>
               <Badge variant={selectedEvent.urgency === 'mandatory' ? 'destructive' : 'secondary'}>
                 {selectedEvent.urgency}
               </Badge>
-            </div>
+            </motion.div>
           )}
           {!isInject && selectedEvent.targetPopulation && (
-            <div className="space-y-1">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+              className="space-y-1"
+            >
               <h4 className="text-sm font-semibold">Target Population</h4>
               <p className="text-sm text-muted-foreground">{selectedEvent.targetPopulation}</p>
-            </div>
+            </motion.div>
           )}
         </div>
         <DialogFooter>

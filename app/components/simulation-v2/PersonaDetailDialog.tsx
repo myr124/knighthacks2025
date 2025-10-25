@@ -1,5 +1,6 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTTXStoreV2 } from '@/lib/stores/ttxStoreV2';
 import { getDemographicLabel } from '@/lib/utils/personaDemographics';
 import {
@@ -60,14 +61,19 @@ export function PersonaDetailDialog() {
         <ScrollArea className="flex-1 pr-4">
           <div className="space-y-4">
             {/* Current Status */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Current Status - Period {currentPeriod}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Current Status - Period {currentPeriod}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={`${SENTIMENT_COLORS[persona.sentiment]} text-white`}>
                     {persona.sentiment}
@@ -89,8 +95,14 @@ export function PersonaDetailDialog() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
 
             {/* Demographics */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -147,8 +159,14 @@ export function PersonaDetailDialog() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
 
             {/* Actions Taken */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -167,9 +185,15 @@ export function PersonaDetailDialog() {
                 </ul>
               </CardContent>
             </Card>
+            </motion.div>
 
             {/* Concerns */}
             {persona.concerns.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -188,9 +212,15 @@ export function PersonaDetailDialog() {
                   </ul>
                 </CardContent>
               </Card>
+              </motion.div>
             )}
 
             {/* History */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -234,6 +264,7 @@ export function PersonaDetailDialog() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           </div>
         </ScrollArea>
       </DialogContent>
