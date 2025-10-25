@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, CheckCircle, GripVertical } from "lucide-react";
 import type { EOCAction } from "@/lib/utils/ttxGenerator";
 import React from "react";
+import { motion } from "framer-motion";
 
 export interface ActionCardProps {
   action: EOCAction;
@@ -14,7 +15,16 @@ export interface ActionCardProps {
 
 export function ActionCard({ action, onEdit, onDelete }: ActionCardProps) {
   return (
-    <div className="p-3 border rounded-lg bg-accent/20 dark:bg-zinc-900 hover:shadow-md transition-shadow dark:border-zinc-800">
+    <motion.div
+      className="p-3 border rounded-lg bg-accent/20 dark:bg-zinc-900 transition-shadow dark:border-zinc-800"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      layout
+      transition={{ duration: 0.2 }}
+      whileHover={{ scale: 1.01, boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)" }}
+      whileTap={{ scale: 0.98 }}
+    >
       <div className="flex items-start justify-between mb-2">
         <span
             className="text-zinc-500 dark:text-zinc-400 cursor-grab select-none mt-0.5"
@@ -85,6 +95,6 @@ export function ActionCard({ action, onEdit, onDelete }: ActionCardProps) {
           </Button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

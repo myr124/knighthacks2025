@@ -20,6 +20,7 @@ import { InjectCard } from './InjectCard';
 import { ActionCard } from './ActionCard';
 import { EditInjectDialog } from './EditInjectDialog';
 import { EditActionDialog } from './EditActionDialog';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TTXScriptReviewPanelProps {
   script: {
@@ -61,6 +62,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
   const [draggingType, setDraggingType] = useState<"inject" | "action" | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<{ periodIdx: number; injectIdx: number } | null>(null);
   const draggingInjectRef = useRef<{ periodIdx: number; index: number } | null>(null);
+  const [isReorderingInject, setIsReorderingInject] = useState(false);
 
   // keep local copy in sync if parent updates
   useEffect(() => {
@@ -185,14 +187,19 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
   return (
     <div className="flex grow gap-4">
       {/* Left tab navigation */}
-      <div className="sticky top-4 self-start w-44 shrink-0 bg-background dark:bg-zinc-900 border dark:border-zinc-800 rounded-lg p-3 h-fit">
+      <motion.div
+        className="sticky top-4 self-start w-44 shrink-0 bg-background dark:bg-zinc-900 border dark:border-zinc-800 rounded-lg p-3 h-fit"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="text-xs uppercase tracking-wide text-zinc-400 mb-2">Jump To</div>
         <div className="flex flex-col gap-1">
           {tabLabels.map((label, idx) => (
             <button
               key={label}
               onClick={() => handleJumpTo(idx)}
-              className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+              className={`text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                 activeIdx === idx
                   ? 'bg-accent/60 dark:bg-zinc-800 text-foreground dark:text-white'
                   : 'text-muted-foreground dark:text-zinc-300 hover:bg-accent/40 dark:hover:bg-zinc-800'
@@ -205,40 +212,61 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
         <div className="mt-4 pt-3 border-t dark:border-zinc-800">
           <div className="text-xs uppercase tracking-wide text-zinc-400 mb-3">Quick Actions</div>
           <div className="flex flex-col gap-2">
-            <button
+            <motion.button
               draggable
               onDragStart={(e) => {
                 setDraggingType('inject');
                 e.dataTransfer.setData('text/plain', 'inject');
               }}
               onDragEnd={() => setDraggingType(null)}
-              className="group relative px-3 py-2.5 rounded-lg text-xs font-semibold bg-linear-to-br from-cyan-900/50 to-cyan-900/30 text-cyan-200 border border-cyan-600/60 hover:from-cyan-800/60 hover:to-cyan-800/40 hover:border-cyan-500 transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-cyan-900/30"
+              className="group relative px-3 py-2.5 rounded-lg text-xs font-semibold bg-linear-to-br from-cyan-900/50 to-cyan-900/30 text-cyan-200 border border-cyan-600/60 hover:from-cyan-800/60 hover:to-cyan-800/40 hover:border-cyan-500 transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-cyan-900/30"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
             >
               <Plus className="h-3.5 w-3.5" />
               <span>New Inject</span>
               <span className="text-[10px] ml-auto opacity-70 group-hover:opacity-100">(drag)</span>
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               draggable
               onDragStart={(e) => {
                 setDraggingType('action');
                 e.dataTransfer.setData('text/plain', 'action');
               }}
               onDragEnd={() => setDraggingType(null)}
-              className="group relative px-3 py-2.5 rounded-lg text-xs font-semibold bg-linear-to-br from-emerald-900/50 to-emerald-900/30 text-emerald-200 border border-emerald-600/60 hover:from-emerald-800/60 hover:to-emerald-800/40 hover:border-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-emerald-900/30"
+              className="group relative px-3 py-2.5 rounded-lg text-xs font-semibold bg-linear-to-br from-emerald-900/50 to-emerald-900/30 text-emerald-200 border border-emerald-600/60 hover:from-emerald-800/60 hover:to-emerald-800/40 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-emerald-900/30"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               <CheckCircle className="h-3.5 w-3.5" />
               <span>New Action</span>
               <span className="text-[10px] ml-auto opacity-70 group-hover:opacity-100">(drag)</span>
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <Card className="flex-1 bg-background dark:bg-[#18181b] border dark:border-zinc-800">
-        <CardContent>
-          {/* Scenario Summary */}
-          <div className="mb-6 p-4 bg-accent/50 dark:bg-zinc-900 rounded-lg space-y-2">
+      <motion.div
+        className="flex-1"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <Card className="bg-background dark:bg-[#18181b] border dark:border-zinc-800">
+          <CardContent>
+            {/* Scenario Summary */}
+            <motion.div
+              className="mb-6 p-4 bg-accent/50 dark:bg-zinc-900 rounded-lg space-y-2"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg capitalize text-foreground dark:text-white">{script.scenarioType} Scenario</h3>
               <Badge className="capitalize dark:bg-zinc-800 dark:text-white">{script.severity}</Badge>
@@ -267,7 +295,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
                 <span className="dark:text-zinc-300">{totalActions} EOC Actions</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Periods */}
           <div ref={contentRef} className="h-[500px] pr-4 overflow-y-auto">
@@ -311,42 +339,51 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
                           Injects
                         </h4>
                         <div className="space-y-2">
-                          {period.injects.map((inject, i) => (
-                            <InjectCard
-                              key={inject.id}
-                              inject={inject}
-                              onEdit={() => handleEditInject(inject, idx, i)}
-                              onDelete={() => deleteInject(idx, i)}
-                              isDragOver={dragOverIdx?.periodIdx === idx && dragOverIdx?.injectIdx === i}
-                              draggable
-                              onDragStart={(e) => {
-                                e.dataTransfer.effectAllowed = 'move';
-                                e.dataTransfer.setData('text/plain', 'reorder-inject');
-                                draggingInjectRef.current = { periodIdx: idx, index: i };
-                              }}
-                              onDragOver={(e) => {
-                                if (e.dataTransfer.getData('text/plain') === 'reorder-inject') {
-                                  e.preventDefault();
-                                  setDragOverIdx({ periodIdx: idx, injectIdx: i });
-                                }
-                              }}
-                              onDrop={(e) => {
-                                const type = e.dataTransfer.getData('text/plain');
-                                if (type === 'reorder-inject') {
-                                  const info = draggingInjectRef.current;
-                                  if (info && info.periodIdx === idx) {
-                                    reorderInject(idx, info.index, i);
+                          <AnimatePresence mode="popLayout">
+                            {period.injects.map((inject, i) => (
+                              <InjectCard
+                                key={inject.id}
+                                inject={inject}
+                                onEdit={() => handleEditInject(inject, idx, i)}
+                                onDelete={() => deleteInject(idx, i)}
+                                isDragOver={dragOverIdx?.periodIdx === idx && dragOverIdx?.injectIdx === i}
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.effectAllowed = 'move';
+                                  e.dataTransfer.setData('text/plain', 'reorder-inject');
+                                  draggingInjectRef.current = { periodIdx: idx, index: i };
+                                  setIsReorderingInject(true);
+                                }}
+                                onDragOver={(e) => {
+                                  if (isReorderingInject) {
+                                    e.preventDefault();
+                                    setDragOverIdx({ periodIdx: idx, injectIdx: i });
                                   }
+                                }}
+                                onDrop={(e) => {
+                                  const type = e.dataTransfer.getData('text/plain');
+                                  if (type === 'reorder-inject') {
+                                    const info = draggingInjectRef.current;
+                                    if (info && info.periodIdx === idx) {
+                                      reorderInject(idx, info.index, i);
+                                    }
+                                    draggingInjectRef.current = null;
+                                    setIsReorderingInject(false);
+                                  }
+                                  setDragOverIdx(null);
+                                }}
+                                onDragEnd={() => {
+                                  setIsReorderingInject(false);
+                                  setDragOverIdx(null);
                                   draggingInjectRef.current = null;
-                                }
-                                setDragOverIdx(null);
-                              }}
-                            />
-                          ))}
+                                }}
+                              />
+                            ))}
+                          </AnimatePresence>
                           {/* end drop zone to place item at end */}
                           <div
                             onDragOver={(e) => {
-                              if (e.dataTransfer.getData('text/plain') === 'reorder-inject') e.preventDefault();
+                              if (isReorderingInject) e.preventDefault();
                             }}
                             onDrop={(e) => {
                               const type = e.dataTransfer.getData('text/plain');
@@ -356,6 +393,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
                                   reorderInject(idx, info.index, period.injects.length);
                                 }
                                 draggingInjectRef.current = null;
+                                setIsReorderingInject(false);
                               }
                             }}
                             className="h-3"
@@ -386,14 +424,16 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
                           EOC Actions
                         </h4>
                         <div className="space-y-2">
-                          {period.eocActions.map((action, ai) => (
-                            <ActionCard
-                              key={action.id}
-                              action={action}
-                              onEdit={() => handleEditAction(action)}
-                              onDelete={() => deleteAction(idx, ai)}
-                            />
-                          ))}
+                          <AnimatePresence mode="popLayout">
+                            {period.eocActions.map((action, ai) => (
+                              <ActionCard
+                                key={action.id}
+                                action={action}
+                                onEdit={() => handleEditAction(action)}
+                                onDelete={() => deleteAction(idx, ai)}
+                              />
+                            ))}
+                          </AnimatePresence>
                         </div>
                       </div>
                       )}
@@ -432,6 +472,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
           </div>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Edit Inject Dialog */}
       <EditInjectDialog
