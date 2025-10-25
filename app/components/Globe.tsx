@@ -111,7 +111,7 @@ interface GlobeProps {
 export default function Globe({ targetLocation }: GlobeProps) {
   return (
     <div className="w-full h-full">
-      <Canvas camera={{ position: [0, 0, 250], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 300], fov: 45 }}>
         <ambientLight intensity={1.2} />
         <directionalLight position={[5, 3, 5]} intensity={1.5} />
         <pointLight position={[10, 0, 0]} intensity={0.8} />

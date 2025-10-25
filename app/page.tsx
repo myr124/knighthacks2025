@@ -2,19 +2,20 @@ import Sidebar from "./components/Sidebar";
 import MetricsPanel from "./components/MetricsPanel";
 import Globe from "./components/Globe";
 import ChatBox from "./components/ChatBox";
+import Header from "./components/Header"
 
 export default function Home() {
   return (
     <div className="flex h-screen w-full bg-black overflow-hidden">
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <Sidebar />
       </div>
       <div className="flex-1 flex items-center justify-center relative">
-        <Globe />
+        <Globe targetLocation={null} />
         <ChatBox />
       </div>
-      <div className="flex-shrink-0">
-        <MetricsPanel />
+      <div className="shrink-0">
+        <MetricsPanel hazardCategory={0} targetArea={""} timeTillLandfall={0} agentCount={0} />
       </div>
     </div>
   );

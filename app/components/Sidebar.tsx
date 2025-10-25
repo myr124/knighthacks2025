@@ -1,4 +1,5 @@
-import React from "react";
+'use client'
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,32 +10,123 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ChevronLeft, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { ScenarioConfigForm } from "./ScenarioConfigForm"
+import { TTXScriptReviewPanel } from "./TTXScriptReviewPanel"
+import type { ScenarioConfig, Inject, EOCAction, OperationalPeriod } from '@/lib/utils/ttxGenerator';
+import { ConfigDialog } from "./ConfigDialog"
 
 const Sidebar: React.FC = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'config' | 'review'>('config');
+  const [config, setConfig] = useState<ScenarioConfig>({
+    scenarioType: 'hurricane',
+    location: 'Miami-Dade County, FL',
+    severity: 'major',
+    population: 2700000,
+    agents: 25
+  });
+  const [script, setScript] = useState<{
+    scenarioType: string;
+    location: string;
+    severity: string;
+    population: number;
+    periods: (OperationalPeriod & {
+      injects: Inject[];
+      eocActions: EOCAction[];
+    })[];
+  } | null>(null);
+
+  const handleGenerate = (generatedConfig: ScenarioConfig) => {
+    setConfig(generatedConfig);
+    // Dummy script for demo purposes
+    const dummyScript = {
+      scenarioType: generatedConfig.scenarioType,
+      location: generatedConfig.location,
+      severity: generatedConfig.severity,
+      population: generatedConfig.population,
+      periods: Array.from({ length: 5 }, (_, i) => ({
+        id: `op-${i+1}`,
+        periodNumber: i+1,
+        label: `Operational Period ${i+1}`,
+        phase: (['planning', 'preparation', 'response', 'response', 'recovery'] as const)[i % 5],
+        injects: [
+          {
+            id: `inj-${i+1}-1`,
+            time: '0800',
+            severity: 'medium' as const,
+            type: 'weather_update',
+            title: 'Storm Approaching',
+            description: 'Hurricane is expected to make landfall in 24 hours.'
+          }
+        ],
+        eocActions: [
+          {
+            id: `act-${i+1}-1`,
+            time: '0900',
+            actionType: 'public_alert' as const,
+            details: 'Issue evacuation warning for coastal areas.',
+            targetPopulation: '500,000 residents',
+            urgency: 'voluntary' as const,
+            zone: 'Zone A'
+          }
+        ]
+      }))
+    };
+    setScript(dummyScript);
+    setCurrentStep('review');
+  };
+
+  const handleSubmit = () => {
+    // TODO: Implement backend submission
+    console.log('Submitting script:', script);
+    setIsDialogOpen(false);
+    setCurrentStep('config');
+    setScript(null);
+  };
+
+  const handleClose = () => {
+    setIsDialogOpen(false);
+    setCurrentStep('config');
+    setScript(null);
+  };
+
   return (
     <aside className="h-screen w-72 bg-black text-white flex flex-col border-r border-gray-800">
       {/* Top brand / breadcrumb */}
-      <span className="px-5 py-6 text-2xl text-white">Emergent</span>
 
       <div className="px-5 pt-5 pb-3 flex items-center gap-2 text-sm text-gray-300">
-        <span className="opacity-80">Emergency Research Engine</span>
+        <span className="opacity-80">Generate Emergency Plan</span>
       </div>
 
       <div className="px-5 py-2 space-y-6">
         {/* Create Session */}
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-2 border-gray-700 text-gray-100 bg-[#121212] hover:bg-[#1b1b1b]"
-        >
-          <Plus className="h-4 w-4" /> Create New Session
-        </Button>
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            className="w-full border-gray-800 bg-black hover:bg-linear-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
+            onClick={() => window.location.href = '/editor'}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Session
+          </Button>
+        </div>
 
         {/* Analysis Sessions */}
         <Card className="bg-transparent border border-gray-700">
           <CardContent className="p-4">
             <div>
-              <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">Analysis Sessions</span>
-              <div className="text-gray-500 text-sm">No sessions yet</div>
+              <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">Hurricane Melissa</span>
+              <div className="text-sm" style={{ color: 3 < 5 ? "#ef4444" : "#6b7280" }}>
+                Landfall in 3 days
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -42,9 +134,8 @@ const Sidebar: React.FC = () => {
 
       {/* Footer status */}
       <div className="mt-auto px-5 pb-5 text-[12px] text-gray-400 space-y-1">
-        <div>199 Auth0 users loaded</div>
-        <div>No analysis running</div>
-        <div className="pt-2 text-[11px] opacity-60">Version 2.1</div>
+        <div>All rights reserved</div>
+        <div className="pt-2 text-[11px] opacity-60">Version 1.0</div>
       </div>
     </aside>
   );
