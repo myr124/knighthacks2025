@@ -10,21 +10,21 @@ In a crisis, effective communication can save lives. However, testing communicat
 
 ## Key Features
 
-*   **AI-Powered Scenario Generation:** Use Google's Gemini model to dynamically generate realistic disaster scenarios and narrative injects.
-*   **Interactive Simulation:** Run exercises on an interactive GIS map, with events unfolding over a structured timeline.
-*   **Persona-Based Modeling:** Simulate a diverse community with unique "personas" that react differently to events based on their demographics and roles.
-*   **AI Chat Interaction:** Engage with an AI-powered chatbot to get situational updates and test communication strategies by seeing how personas react.
-*   **Comprehensive After-Action Reporting:** Generate detailed reports after each simulation, including an executive summary, deep-dive analytics, and an interactive timeline replay.
-*   **Modern, Intuitive Interface:** A clean and responsive UI built with Next.js, Tailwind CSS, and shadcn/ui.
+- **AI-Powered Scenario Generation:** Use Google's Gemini model to dynamically generate realistic disaster scenarios and narrative injects.
+- **Interactive Simulation:** Run exercises on an interactive GIS map, with events unfolding over a structured timeline.
+- **Persona-Based Modeling:** Simulate a diverse community with unique "personas" that react differently to events based on their demographics and roles using Google Gemini's ADK and Parallel Agents
+- **AI Chat Interaction:** Engage with an Gemini AI-powered chatbot to get situational updates and test communication strategies by seeing how personas react.
+- **Comprehensive After-Action Reporting:** Generate detailed reports after each simulation, including an executive summary, deep-dive analytics, and an interactive timeline replay.
+- **Modern, Intuitive Interface:** A clean and responsive UI built with Next.js, Tailwind CSS, and shadcn/ui.
 
 ## Technology Stack
 
-*   **Framework:** [Next.js](https://nextjs.org/) 14+
-*   **Language:** [TypeScript](https://www.typescriptlang.org/)
-*   **AI:** [Google Gemini](https://ai.google.dev/) via `@google/generative-ai`
-*   **Styling:** [Tailwind CSS](https://tailwindcss.com/) with [shadcn/ui](https://ui.shadcn.com/)
-*   **Mapping:** [React Leaflet](https://react-leaflet.js.org/)
-*   **3D Visualization:** [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) & [Drei](https://github.com/pmndrs/drei)
+- **Framework:** [Next.js](https://nextjs.org/) 14+
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **AI:** [Google Gemini](https://ai.google.dev/) via `@google/generative-ai`
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) with [shadcn/ui](https://ui.shadcn.com/)
+- **Mapping:** [React Leaflet](https://react-leaflet.js.org/)
+- **3D Visualization:** [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) & [Drei](https://github.com/pmndrs/drei)
 
 ## Getting Started
 
@@ -32,18 +32,20 @@ Follow these instructions to get a local copy of the project up and running for 
 
 ### Prerequisites
 
-*   Node.js (v20.x or later recommended)
-*   npm or yarn
+- Node.js (v20.x or later recommended)
+- npm or yarn
 
 ### Installation
 
 1.  **Clone the repository:**
+
     ```sh
     git clone https://github.com/your-username/your-repository-name.git
     cd your-repository-name
     ```
 
 2.  **Install dependencies:**
+
     ```sh
     npm install
     ```
@@ -53,11 +55,13 @@ Follow these instructions to get a local copy of the project up and running for 
     This project requires an API key for the Google Gemini AI service.
 
     Create a file named `.env.local` in the root of the project and add your API key:
+
     ```
     GOOGLE_API_KEY="YOUR_API_KEY_HERE"
     ```
 
 4.  **Run the development server:**
+
     ```sh
     npm run dev
     ```
@@ -66,40 +70,42 @@ Follow these instructions to get a local copy of the project up and running for 
 
 ### Other Scripts
 
-*   **Build for production:**
-    ```sh
-    npm run build
-    ```
+- **Build for production:**
 
-*   **Run production server:**
-    ```sh
-    npm run start
-    ```
+  ```sh
+  npm run build
+  ```
 
-*   **Run linter:**
-    ```sh
-    npm run lint
-    ```
+- **Run production server:**
+
+  ```sh
+  npm run start
+  ```
+
+- **Run linter:**
+  ```sh
+  npm run lint
+  ```
 
 ## Project Structure
 
 The codebase is organized to keep a clean separation of concerns.
 
-*   `app/`: Contains the core application logic, pages, and API routes, following the Next.js App Router structure.
-    *   `app/api/`: Backend API endpoints for AI generation, chat, etc.
-    *   `app/components/`: The majority of the React components that make up the UI.
-    *   `app/(pages)/`: Different top-level pages like `/editor`, `/simulation-v2`, etc.
-*   `components/ui/`: Core UI components from shadcn/ui.
-*   `lib/`: Contains utility functions, type definitions, and state management stores.
-    *   `lib/stores/`: State management logic (e.g., Zustand stores).
-    *   `lib/types/`: TypeScript type definitions for data structures like scenarios and personas.
-*   `public/`: Static assets like images and icons.
+- `app/`: Contains the core application logic, pages, and API routes, following the Next.js App Router structure.
+  - `app/api/`: Backend API endpoints for AI generation, chat, etc.
+  - `app/components/`: The majority of the React components that make up the UI.
+  - `app/(pages)/`: Different top-level pages like `/editor`, `/simulation-v2`, etc.
+- `components/ui/`: Core UI components from shadcn/ui.
+- `lib/`: Contains utility functions, type definitions, and state management stores.
+  - `lib/stores/`: State management logic (e.g., Zustand stores).
+  - `lib/types/`: TypeScript type definitions for data structures like scenarios and personas.
+- `public/`: Static assets like images and icons.
 
 ## Contributing
 
 Contributions are welcome! If you have a suggestion or find a bug, please open an issue to discuss it.
 
-*(You can add more detailed contribution guidelines here if you wish.)*
+_(You can add more detailed contribution guidelines here if you wish.)_
 
 ## License
 
