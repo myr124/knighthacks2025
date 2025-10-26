@@ -227,7 +227,7 @@ export function PeriodMapView() {
       </MapContainer>
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border text-xs z-[1000]">
+      <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border text-xs z-10">
         <div className="font-semibold mb-2">Persona Status</div>
         {Object.entries(LOCATION_COLORS).map(([status, color]) => {
           const count = locationCounts[status as PersonaResponse['location']] || 0;

@@ -8,6 +8,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { ConsolidatedHeader } from "@/app/components/simulation-v2/ConsolidatedHeader";
 import { TabbedSidePanel } from "@/app/components/simulation-v2/TabbedSidePanel";
 import { PersonaDetailDialog } from "@/app/components/simulation-v2/PersonaDetailDialog";
+import { PhoneInterviewModal } from "@/app/components/simulation-v2/PhoneInterviewModal";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
 import { InjectsAndEOCsFeed } from "@/app/components/simulation-v2/InjectsAndEOCsFeed";
 import { EventDetailDialog } from "@/app/components/simulation-v2/EventDetailDialog";
@@ -114,6 +115,7 @@ export default function SimulationV2Page() {
       {/* Dialogs */}
       <PersonaDetailDialog />
       <EventDetailDialog />
+      <PhoneInterviewModal />
     </motion.div>
   );
 }
