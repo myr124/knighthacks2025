@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTTXStoreV2 } from '@/lib/stores/ttxStoreV2';
 import { getDemographicLabel } from '@/lib/utils/personaDemographics';
@@ -14,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { User, MapPin, Heart, AlertCircle, CheckCircle, TrendingUp, Phone } from 'lucide-react';
+import { ElevenLabsCallModal } from './ElevenLabsCallModal';
+import type { PersonaResponse } from '@/lib/types/ttx';
 
 const SENTIMENT_COLORS: Record<string, string> = {
   calm: 'bg-green-500',
@@ -37,8 +40,10 @@ export function PersonaDetailDialog() {
   const currentPeriod = useTTXStoreV2((state) => state.currentPeriod);
   const selectedPersonaId = useTTXStoreV2((state) => state.selectedPersonaId);
   const setSelectedPersona = useTTXStoreV2((state) => state.setSelectedPersona);
-  const setInterviewPersona = useTTXStoreV2((state) => state.setInterviewPersona);
   const getPersonaHistory = useTTXStoreV2((state) => state.getPersonaHistory);
+
+  // State for ElevenLabs call modal
+  const [callPersona, setCallPersona] = useState<PersonaResponse | null>(null);
 
   if (!scenario || !selectedPersonaId) return null;
 
@@ -64,7 +69,7 @@ export function PersonaDetailDialog() {
             </DialogTitle>
             <Button
               onClick={() => {
-                setInterviewPersona(persona.personaId);
+                setCallPersona(persona);
                 setSelectedPersona(null); // Close details dialog
               }}
               className="flex items-center gap-2"
@@ -309,6 +314,14 @@ export function PersonaDetailDialog() {
           </div>
         </div>
       </DialogContent>
+
+      {/* ElevenLabs Call Modal */}
+      <ElevenLabsCallModal
+        persona={callPersona}
+        actionContext={currentResult?.operationalPeriod || null}
+        isOpen={!!callPersona}
+        onClose={() => setCallPersona(null)}
+      />
     </Dialog>
   );
 }

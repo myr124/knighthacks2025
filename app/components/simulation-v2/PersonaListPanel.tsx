@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/accordion";
 import { getDemographicLabel } from "@/lib/utils/personaDemographics";
 import { AnimatedCounter } from "./AnimatedCounter";
-import { PhoneInterviewModal } from "./PhoneInterviewModal";
+import { ElevenLabsCallModal } from "./ElevenLabsCallModal";
 import type { PersonaResponse } from "@/lib/types/ttx";
 import { Users, Filter, X, Phone } from "lucide-react";
 
@@ -47,7 +47,6 @@ export function PersonaListPanel() {
   const scenario = useTTXStoreV2((state) => state.scenario);
   const currentPeriod = useTTXStoreV2((state) => state.currentPeriod);
   const setSelectedPersona = useTTXStoreV2((state) => state.setSelectedPersona);
-  const setInterviewPersona = useTTXStoreV2((state) => state.setInterviewPersona);
 
   const [filters, setFilters] = useState({
     sentiment: "all",
@@ -56,6 +55,9 @@ export function PersonaListPanel() {
     socialStatus: "all",
     needsAssistance: "all",
   });
+
+  // State for ElevenLabs call modal
+  const [callPersona, setCallPersona] = useState<PersonaResponse | null>(null);
 
   if (!scenario) return null;
 
@@ -322,10 +324,10 @@ export function PersonaListPanel() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setInterviewPersona(persona.personaId);
+                              setCallPersona(persona);
                             }}
                             className="p-1.5 hover:bg-gray-700 rounded transition-colors"
-                            title="Interview Persona"
+                            title="Call Persona"
                           >
                             <Phone className="h-4 w-4" />
                           </button>
@@ -412,8 +414,13 @@ export function PersonaListPanel() {
         </div>
       </ScrollArea>
 
-      {/* Phone Interview Modal */}
-      <PhoneInterviewModal />
+      {/* ElevenLabs Call Modal */}
+      <ElevenLabsCallModal
+        persona={callPersona}
+        actionContext={currentResult?.operationalPeriod || null}
+        isOpen={!!callPersona}
+        onClose={() => setCallPersona(null)}
+      />
     </div>
   );
 }
