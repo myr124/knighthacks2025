@@ -41,6 +41,7 @@ interface TTXScriptReviewPanelProps {
   openPreviewTab?: () => void;
   onPreviewReady?: (text: string) => void;
   sessionId?: string; // TTX session ID for persisting edits
+  onPreviewLoading?: (isLoading: boolean) => void; // Callback to notify parent of loading state
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -57,7 +58,7 @@ const PHASE_COLORS: Record<string, string> = {
   recovery: 'bg-green-500'
 };
 
-export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, getSaveKey, openPreviewTab, onPreviewReady, sessionId }: TTXScriptReviewPanelProps) {
+export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, getSaveKey, openPreviewTab, onPreviewReady, sessionId, onPreviewLoading }: TTXScriptReviewPanelProps) {
   const [editingInject, setEditingInject] = useState<Inject | null>(null);
   const [editingInjectInfo, setEditingInjectInfo] = useState<{ periodIdx: number; index: number } | null>(null);
   const [editingAction, setEditingAction] = useState<EOCAction | null>(null);
@@ -98,6 +99,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
 
   const generatePreview = async (): Promise<string> => {
     setIsPreviewLoading(true);
+    onPreviewLoading?.(true); // Notify parent of loading state
     setPreviewError(null);
     try {
       const res = await fetch('/api/ttx/augment', {
@@ -123,6 +125,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
       return previewText;
     } finally {
       setIsPreviewLoading(false);
+      onPreviewLoading?.(false); // Notify parent that loading is done
     }
   };
 
@@ -165,6 +168,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
 
   const handleGenerateFullScript = async () => {
     // Save current JSON to session before generating text
+    
     try {
       const plan = toEmergencyPlan(localScript as any);
       const key = getSaveKey?.()?.trim();
@@ -177,10 +181,12 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
       console.error('Failed saving before preview generation:', e);
     }
 
-    await generatePreview();
     if (typeof openPreviewTab === 'function') {
       openPreviewTab();
     }
+
+    await generatePreview();
+
     setTimeout(() => {
       previewBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       previewTextareaRef.current?.focus();

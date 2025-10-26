@@ -164,7 +164,6 @@ export function ScenarioConfigForm({
             <Label htmlFor="time" className="text-gray-300">
               Duration (Days)
             </Label>
-                        // ...existing code...
             <Input
               id="time"
               type="number"
@@ -191,7 +190,6 @@ export function ScenarioConfigForm({
               required
               className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
             />
-            // ...existing code...
             <p className="text-xs text-gray-400">
               Enter the duration of the scenario (1-7 days)
             </p>

@@ -1,25 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { TTXScript } from '@/lib/utils/ttxGenerator';
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { TTXScript } from "@/lib/utils/ttxGenerator";
 
 // Initialize the Google Generative AI client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 
 async function generateFacilitatorScript(script: TTXScript): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-  const prompt = `You are an expert exercise facilitator. Based on the following TTX (Table Top eXercise) scenario script, generate a comprehensive facilitator guide that includes:
+  const prompt = `You are an expert emergency exercise facilitator. Your task is to generate a complete, structured facilitator guide for the following TTX (Table Top eXercise) scenario script.
 
-1. Opening remarks for the exercise start
-2. For each operational period:
-   - Period introduction and objectives
-   - Key points to emphasize for each inject
-   - Discussion questions to engage participants
-   - Expected participant responses or actions
-   - Transition points between periods
-3. Closing remarks for the hot wash discussion
+**REQUIRED OUTPUT STRUCTURE:**
+The guide MUST be formatted as a structured script with the following sections and content:
 
-Format the output as a structured facilitator script with clear sections and bullet points.
+1.  **Scenario Overview:** A brief introduction including Type, Location, and Severity.
+2.  **Module X: [Period Label]:** This section must be generated for *each* operational period provided in the input data.
+    * **Period Objectives:** 1–2 objectives specific to the time/phase (e.g., "Assess initial public messaging strategy").
+    * **Situation Update:** A brief, clear narrative of the current status (e.g., "The Hurricane Watch has been issued.").
+    * **Inject Analysis:** For each Inject, provide a **Facilitator Script** to introduce the information and the **Key Learning Point** (e.g., "This inject tests our communication channel reliability.").
+3.  **Closing Remarks:** Wrap-up script leading into the Hot Wash/After Action Review (AAR) discussion.
+
+**INPUT DATA:**
 
 **Scenario Details:**
 - Type: ${script.scenarioType}
@@ -34,13 +35,26 @@ ${script.periods
 **Period ${period.periodNumber}: ${period.label}** (${period.phase})
 
 Injects:
-${period.injects?.map((inj) => `- [${inj.time}] ${inj.title} (${inj.severity}): ${inj.description}`).join('\n') || '- No injects defined'}
+${
+  period.injects
+    ?.map(
+      (inj) =>
+        `- [${inj.time}] ${inj.title} (${inj.severity}): ${inj.description}`
+    )
+    .join("\n") || "- No injects defined"
+}
 
 EOC Actions:
-${period.eocActions?.map((action) => `- [${action.time}] ${action.actionType}: ${action.details}`).join('\n') || '- No actions defined'}
+${
+  period.eocActions
+    ?.map(
+      (action) => `- [${action.time}] ${action.actionType}: ${action.details}`
+    )
+    .join("\n") || "- No actions defined"
+}
 `
   )
-  .join('\n')}
+  .join("\n")}
 
 Generate a detailed, practical facilitator script that will help guide this TTX exercise effectively.`;
 
@@ -50,8 +64,11 @@ Generate a detailed, practical facilitator script that will help guide this TTX 
     const text = await response.text();
     return text;
   } catch (error) {
-    console.error('Error generating facilitator script with Gemini API:', error);
-    throw new Error('Failed to generate facilitator script');
+    console.error(
+      "Error generating facilitator script with Gemini API:",
+      error
+    );
+    throw new Error("Failed to generate facilitator script");
   }
 }
 
@@ -60,17 +77,21 @@ export async function POST(request: NextRequest) {
     const { script } = await request.json();
 
     if (!script) {
-      return NextResponse.json({ error: 'Missing script parameter' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing script parameter" },
+        { status: 400 }
+      );
     }
 
     const previewText = await generateFacilitatorScript(script);
 
     return NextResponse.json({ previewText, script });
   } catch (error) {
-    console.error('Error in augment route:', error);
+    console.error("Error in augment route:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to generate preview',
+        error:
+          error instanceof Error ? error.message : "Failed to generate preview",
       },
       { status: 500 }
     );
