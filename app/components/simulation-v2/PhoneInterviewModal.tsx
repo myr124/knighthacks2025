@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useTTXStoreV2 } from '@/lib/stores/ttxStoreV2';
 import {
   Dialog,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useConversation } from '@elevenlabs/react';
+import { Conversation } from '@elevenlabs/client';
 
 export function PhoneInterviewModal() {
   const scenario = useTTXStoreV2((state) => state.scenario);
@@ -18,13 +18,9 @@ export function PhoneInterviewModal() {
 
   const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
-  // Initialize ElevenLabs conversation
-  const conversation = useConversation({
-    onConnect: () => console.log('✅ Connected to ElevenLabs agent'),
-    onDisconnect: () => console.log('📵 Disconnected from ElevenLabs agent'),
-    onMessage: (message) => console.log('💬 Message:', message),
-    onError: (error) => console.error('❌ ElevenLabs error:', error),
-  });
+  // Conversation state
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [conversationStatus, setConversationStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected'>('idle');
 
   // Get current persona and period result
   const persona = scenario?.periodResults[currentPeriod - 1]?.personaResponses.find(
@@ -33,63 +29,11 @@ export function PhoneInterviewModal() {
 
   const periodResult = scenario?.periodResults[currentPeriod - 1];
 
-  // Build dynamic variables for the agent
-  const customOverrides = useMemo(() => {
-    if (!persona || !periodResult) return {};
-
-    return {
-      // Basic persona info
-      persona_name: persona.personaName,
-      persona_type: persona.personaType,
-      persona_age: persona.demographics.age.toString(),
-      persona_bio: persona.bio || `A ${persona.personaType} experiencing this emergency.`,
-
-      // Scenario context
-      scenario_type: scenario?.ttxScript?.scenarioType || 'hurricane',
-      scenario_name: scenario?.ttxScript?.name || '',
-      location: scenario?.ttxScript?.location || 'your area',
-      period_phase: periodResult.operationalPeriod.phase,
-      period_label: periodResult.operationalPeriod.label,
-      current_period: currentPeriod.toString(),
-
-      // Current status
-      current_location: persona.location.replace('_', ' '),
-      sentiment: persona.sentiment,
-      current_decision: persona.decision.replace('_', ' '),
-      needs_assistance: persona.needsAssistance ? 'true' : 'false',
-
-      // Demographics
-      income_level: persona.demographics.socialStatus.replace('_', ' '),
-      education_level: persona.demographics.educationLevel.replace('_', ' '),
-      trust_level: persona.demographics.trustInGovernment,
-      political_leaning: persona.demographics.politicalLeaning,
-      has_children: persona.demographics.hasChildren ? 'true' : 'false',
-      has_children_text: persona.demographics.hasChildren ? '**You have children who depend on you**' : 'No children',
-      has_vehicle: persona.demographics.hasVehicle ? 'true' : 'false',
-      has_vehicle_text: persona.demographics.hasVehicle ? 'You have a vehicle' : '**You do NOT have a vehicle**',
-      household_size: persona.demographics.householdSize.toString(),
-      home_ownership: persona.demographics.homeOwnership === 'own' ? 'Homeowner' : 'Renter',
-
-      // Current thinking
-      reasoning: persona.reasoning,
-      recent_actions: persona.actions.join('\n• '),
-      concerns: persona.concerns.join('\n• ') || 'None specific',
-
-      // Placeholders for knowledge (would come from personaKnowledge.ts if implemented)
-      awareness_level: 'medium',
-      scenario_awareness: `You are aware of the ${scenario?.ttxScript?.scenarioType || 'emergency'} situation and have been following updates.`,
-      information_sources: 'TV news, radio, word of mouth',
-      known_injects: 'General emergency updates',
-      known_eoc_actions: 'Public safety announcements',
-      past_phases_summary: 'This is your current situation during the emergency.',
-      emotional_journey: `Currently feeling ${persona.sentiment}`,
-    };
-  }, [persona, periodResult, scenario, currentPeriod]);
-
   // Handle hang up - end conversation and close modal
   const handleHangUp = async () => {
-    if (conversation.status === 'connected') {
+    if (conversation && conversationStatus === 'connected') {
       await conversation.endSession();
+      setConversationStatus('disconnected');
     }
     setInterviewPersona(null);
   };
@@ -97,8 +41,9 @@ export function PhoneInterviewModal() {
   // Handle dialog close - also end conversation
   const handleDialogClose = async (open: boolean) => {
     if (!open) {
-      if (conversation.status === 'connected') {
+      if (conversation && conversationStatus === 'connected') {
         await conversation.endSession();
+        setConversationStatus('disconnected');
       }
       setInterviewPersona(null);
     }
@@ -106,28 +51,59 @@ export function PhoneInterviewModal() {
 
   // Start conversation when modal opens
   useEffect(() => {
-    if (!agentId || !interviewPersonaId || !persona || !customOverrides) return;
+    if (!agentId || !interviewPersonaId || !persona || !periodResult) return;
 
     const startConversation = async () => {
       try {
-        await conversation.startSession({
-          agentId,
-          overrides: customOverrides,
+        setConversationStatus('connecting');
+
+        // Request microphone access
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Build simple dynamic variables
+        const dynamicVariables = {
+          persona: JSON.stringify(persona),
+          actionContext: JSON.stringify(periodResult.operationalPeriod),
+        };
+
+        console.log('🎯 Starting conversation with agent:', agentId);
+        console.log('📦 Dynamic variables:', dynamicVariables);
+
+        const conv = await Conversation.startSession({
+          agentId: agentId!,
+          dynamicVariables,
+
+          onConnect: () => {
+            console.log('✅ Connected');
+            setConversationStatus('connected');
+          },
+          onDisconnect: () => {
+            console.log('📵 Disconnected');
+            setConversationStatus('disconnected');
+          },
+          onMessage: (message) => console.log('💬 Message:', message),
+          onError: (error) => {
+            console.error('❌ Error:', error);
+            setConversationStatus('disconnected');
+          },
         });
+
+        setConversation(conv);
       } catch (error) {
         console.error('Failed to start conversation:', error);
+        alert('Failed to start conversation. Please ensure microphone access is granted.');
+        setConversationStatus('disconnected');
       }
     };
 
     startConversation();
 
-    // Cleanup: end conversation when modal closes
     return () => {
-      if (conversation.status === 'connected') {
+      if (conversation && conversationStatus === 'connected') {
         conversation.endSession();
       }
     };
-  }, [interviewPersonaId, agentId, persona]);
+  }, [interviewPersonaId, agentId, persona, periodResult]);
 
   // If no agent ID configured, show error message
   if (!agentId) {
@@ -179,7 +155,7 @@ export function PhoneInterviewModal() {
                     </div>
                   </div>
                   {/* Status Indicator */}
-                  {conversation.status === 'connected' && (
+                  {conversationStatus === 'connected' && (
                     <div className="absolute bottom-2 right-2 h-4 w-4 rounded-full bg-green-500 border-2 border-gray-800 animate-pulse" />
                   )}
                 </div>
@@ -188,9 +164,9 @@ export function PhoneInterviewModal() {
               {/* Persona Info */}
               <h3 className="text-xl font-semibold">{persona.personaName}</h3>
               <p className="text-sm text-gray-400">{persona.personaType}</p>
-              {conversation.status && (
+              {conversationStatus && (
                 <p className="text-xs text-green-400 mt-2">
-                  Status: {conversation.status}
+                  Status: {conversationStatus}
                 </p>
               )}
             </div>
