@@ -105,8 +105,6 @@ The codebase is organized to keep a clean separation of concerns.
 
 Contributions are welcome! If you have a suggestion or find a bug, please open an issue to discuss it.
 
-_(You can add more detailed contribution guidelines here if you wish.)_
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
