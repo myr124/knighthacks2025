@@ -1,59 +1,35 @@
 import { NextResponse } from 'next/server';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { transformADKToScenarioResults } from '@/lib/utils/adkTransformer';
 
-// Cache for transformed data to avoid re-parsing on every request
-let cachedScenarioResults: any = null;
-let cacheTimestamp: number = 0;
-const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+// Placeholder endpoint URL - replace with your actual API endpoint
+const PLACEHOLDER_API_ENDPOINT = 'https://your-api-endpoint-here.com/api/ttx';
 
 export async function GET() {
   try {
-    // Check cache
-    const now = Date.now();
-    if (cachedScenarioResults && (now - cacheTimestamp) < CACHE_DURATION) {
-      console.log('Returning cached ADK scenario data');
-      return NextResponse.json(cachedScenarioResults);
+    console.log('Calling real API endpoint:', PLACEHOLDER_API_ENDPOINT);
+
+    // Call the real API endpoint
+    const response = await fetch(PLACEHOLDER_API_ENDPOINT, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API endpoint responded with status ${response.status}`);
     }
 
-    // Read test.json from root directory
-    const testJsonPath = join(process.cwd(), 'test.json');
-    const fileContent = readFileSync(testJsonPath, 'utf-8');
-
-    // Parse JSON
-    const adkData = JSON.parse(fileContent);
-
-    if (!Array.isArray(adkData)) {
-      throw new Error('test.json should contain an array of ADK responses');
-    }
-
-    if (adkData.length === 0) {
-      throw new Error('test.json is empty');
-    }
-
-    console.log(`Transforming ${adkData.length} ADK responses...`);
-
-    // Transform to frontend format
-    const scenarioResults = transformADKToScenarioResults(adkData);
-
-    console.log(`Transformed ADK data: ${scenarioResults.periodResults.length} periods, ` +
-      `${scenarioResults.periodResults[0]?.personaResponses.length || 0} personas per period`);
-
-    // Cache the result
-    cachedScenarioResults = scenarioResults;
-    cacheTimestamp = now;
-
-    return NextResponse.json(scenarioResults);
+    const result = await response.json();
+    return NextResponse.json(result);
 
   } catch (error) {
-    console.error('Error loading test.json:', error);
+    console.error('Error calling API endpoint:', error);
 
     return NextResponse.json(
       {
-        error: 'Failed to load test.json',
+        error: 'Failed to call API endpoint',
         details: error instanceof Error ? error.message : 'Unknown error',
-        suggestion: 'Make sure test.json exists in the project root and contains valid ADK response data'
+        suggestion: 'Update PLACEHOLDER_API_ENDPOINT in app/api/ttx/mock/route.ts with your actual API URL'
       },
       { status: 500 }
     );

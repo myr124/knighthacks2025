@@ -193,22 +193,26 @@ function calculateAggregates(responses: PersonaResponse[]) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if we should use test.json data
+    // Check if we should use test.json data (only when explicitly set to 'true')
     if (process.env.USE_TEST_JSON === 'true') {
       console.log('Using test.json data (USE_TEST_JSON=true)');
 
-      // Forward to mock API route
-      const baseUrl = request.nextUrl.origin;
-      const mockResponse = await fetch(`${baseUrl}/api/ttx/mock`, {
-        method: 'GET',
-      });
+      // Read test.json directly (inline)
+      const { readFileSync } = await import('fs');
+      const { join } = await import('path');
+      const { transformADKToScenarioResults } = await import('@/lib/utils/adkTransformer');
 
-      if (!mockResponse.ok) {
-        throw new Error(`Mock API responded with status ${mockResponse.status}`);
+      const testJsonPath = join(process.cwd(), 'test.json');
+      const fileContent = readFileSync(testJsonPath, 'utf-8');
+      const adkData = JSON.parse(fileContent);
+
+      if (!Array.isArray(adkData)) {
+        throw new Error('test.json should contain an array of ADK responses');
       }
 
-      const result = await mockResponse.json();
-      return NextResponse.json(result);
+      console.log(`Transforming ${adkData.length} ADK responses from test.json...`);
+      const scenarioResults = transformADKToScenarioResults(adkData);
+      return NextResponse.json(scenarioResults);
     }
 
     const payload = await request.json();
@@ -244,36 +248,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result);
     }
 
-    // Fallback: Development mode with generated mock data
-    console.log('Development mode: Using generated mock data (no ADK_BACKEND_URL or USE_TEST_JSON)');
+    // Default: Use the mock API route which calls the real placeholder endpoint
+    console.log('Using mock API route with real endpoint (default behavior)');
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    const baseUrl = request.nextUrl.origin;
+    const mockResponse = await fetch(`${baseUrl}/api/ttx/mock`, {
+      method: 'GET',
+    });
 
-    const operationalPeriods = generateOperationalPeriods();
+    if (!mockResponse.ok) {
+      // If mock route fails, fall back to generated mock data
+      console.log('Mock route failed, falling back to generated mock data');
 
-    // Return mock response matching ADK spec
-    const mockResponse = {
-      scenarioId: payload.scenarioId,
-      generationTime: 28.4,
-      status: 'completed',
-      periodResults: payload.actionPlan.periods.map((period: any, index: number) => {
-        const personaResponses = generateMockPersonaResponses(period, index);
-        const aggregates = calculateAggregates(personaResponses);
-        const injects = generateInjects(period.periodNumber);
-        const eocActions = generateEOCActions(period.periodNumber);
-        return {
-          periodNumber: period.periodNumber,
-          operationalPeriod: operationalPeriods[index],
-          personaResponses,
-          aggregates,
-          injects,
-          eocActions
-        }
-      })
-    };
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const operationalPeriods = generateOperationalPeriods();
 
-    return NextResponse.json(mockResponse);
+      const fallbackResponse = {
+        scenarioId: payload.scenarioId,
+        generationTime: 28.4,
+        status: 'completed',
+        periodResults: payload.actionPlan.periods.map((period: any, index: number) => {
+          const personaResponses = generateMockPersonaResponses(period, index);
+          const aggregates = calculateAggregates(personaResponses);
+          const injects = generateInjects(period.periodNumber);
+          const eocActions = generateEOCActions(period.periodNumber);
+          return {
+            periodNumber: period.periodNumber,
+            operationalPeriod: operationalPeriods[index],
+            personaResponses,
+            aggregates,
+            injects,
+            eocActions
+          }
+        })
+      };
+
+      return NextResponse.json(fallbackResponse);
+    }
+
+    const result = await mockResponse.json();
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Error generating scenario:', error);
