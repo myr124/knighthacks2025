@@ -73,7 +73,8 @@ const Sidebar: React.FC = () => {
                   <button
                     className="ml-2 p-1 rounded hover:bg-gray-800"
                     title="Edit session"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setSelectedPlan(title);
                       window.location.href = `/editor?plan=${encodeURIComponent(
                         title
