@@ -31,6 +31,16 @@ export function ConsolidatedHeader() {
   const isLastPeriod = currentPeriod === scenario.periodResults.length;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check: if currentResult is undefined, return null or show loading
+  if (!currentResult || !currentResult.operationalPeriod) {
+    return (
+      <div className="bg-background/95 backdrop-blur-sm border-b px-6 py-3">
+        <p className="text-sm text-muted-foreground">Loading period data...</p>
+      </div>
+    );
+  }
+
   const op = currentResult.operationalPeriod;
 
   // Parse time string (e.g., "T-120h" or "T+24h")

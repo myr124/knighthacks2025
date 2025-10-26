@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
@@ -12,20 +12,71 @@ import { KeyInsightsSection } from "@/app/components/final-report/KeyInsightsSec
 import { InteractiveTimelineReplay } from "@/app/components/final-report/InteractiveTimelineReplay";
 import { DeepDiveAnalytics } from "@/app/components/final-report/DeepDiveAnalytics";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
+import { useState, useEffect } from "react";
+import { generateAARDocx } from "@/lib/utils/generateDocx";
 
 export default function FinalReportPage() {
   const router = useRouter();
   const scenario = useTTXStoreV2((state) => state.scenario);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  useEffect(() => {
+    if (!scenario) {
+      router.push("/simulation-v2");
+    }
+  }, [scenario, router]);
 
   if (!scenario) {
-    router.push("/simulation-v2");
     return null;
   }
 
-  const handleDownloadReport = () => {
-    // This will be implemented to download PDF/Word document
-    console.log("Downloading report...");
-    // TODO: Implement actual download functionality
+  const handleDownloadReport = async () => {
+    setIsGeneratingReport(true);
+
+    try {
+      // Call the API to generate the AAR/IP document
+      const response = await fetch('/api/ttx/generate-aar-document', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ scenarioData: scenario }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API responded with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const { document: aarDocument, metadata } = data;
+
+      // Convert markdown to Word document
+      const docxBlob = await generateAARDocx(aarDocument, metadata);
+
+      // Create download link
+      const url = window.URL.createObjectURL(docxBlob);
+      const link = window.document.createElement('a');
+      link.href = url;
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `AAR-IP_${metadata.scenarioName.replace(/\s+/g, '_')}_${timestamp}.docx`;
+      link.download = filename;
+
+      window.document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      window.document.body.removeChild(link);
+
+      console.log('AAR/IP document downloaded successfully');
+    } catch (error) {
+      console.error('Error generating AAR/IP document:', error);
+      alert('Failed to generate AAR/IP document. Please try again.');
+    } finally {
+      setIsGeneratingReport(false);
+    }
   };
 
   return (
@@ -57,10 +108,20 @@ export default function FinalReportPage() {
           <div className="flex items-center gap-3">
             <Button
               onClick={handleDownloadReport}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+              disabled={isGeneratingReport}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50"
             >
-              <Download className="h-4 w-4 mr-2" />
-              Download AAR/IP
+              {isGeneratingReport ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating Report...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download AAR/IP
+                </>
+              )}
             </Button>
             <ThemeToggle />
           </div>

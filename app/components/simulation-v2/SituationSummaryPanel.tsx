@@ -64,6 +64,24 @@ export function SituationSummaryPanel() {
   }
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lightbulb className="h-4 w-4 text-yellow-600" />
+            AI Situation Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Loading situation data...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const aggregates = currentResult.aggregates;
   const operationalPeriod = currentResult.operationalPeriod;
   const summary = aiSummaries.get(currentPeriod);

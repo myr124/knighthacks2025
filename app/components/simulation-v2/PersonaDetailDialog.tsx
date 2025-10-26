@@ -43,6 +43,10 @@ export function PersonaDetailDialog() {
   if (!scenario || !selectedPersonaId) return null;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult) return null;
+
   const persona = currentResult.personaResponses.find(p => p.personaId === selectedPersonaId);
 
   if (!persona) return null;

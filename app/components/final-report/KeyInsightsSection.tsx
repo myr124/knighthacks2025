@@ -98,22 +98,34 @@ export function KeyInsightsSection() {
   useEffect(() => {
     if (!scenario) return;
 
-    // Generate insights based on scenario data
-    const generatedInsights = generateInsightsFromScenario(scenario);
-    setInsights(generatedInsights);
-    setIsLoading(false);
+    // Call the Gemini API to generate AI insights
+    const fetchInsights = async () => {
+      try {
+        const response = await fetch('/api/ttx/generate-insights', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ scenarioData: scenario }),
+        });
 
-    // TODO: In production, this would call the ADK API to generate AI insights
-    // const fetchInsights = async () => {
-    //   const response = await fetch('/api/ttx/generate-insights', {
-    //     method: 'POST',
-    //     body: JSON.stringify({ scenarioId: scenario.id }),
-    //   });
-    //   const data = await response.json();
-    //   setInsights(data.insights);
-    //   setIsLoading(false);
-    // };
-    // fetchInsights();
+        if (!response.ok) {
+          throw new Error(`API responded with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        setInsights(data.insights);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching AI insights:', error);
+        // Fallback to local generation if API fails
+        const generatedInsights = generateInsightsFromScenario(scenario);
+        setInsights(generatedInsights);
+        setIsLoading(false);
+      }
+    };
+
+    fetchInsights();
   }, [scenario]);
 
   if (!scenario) return null;

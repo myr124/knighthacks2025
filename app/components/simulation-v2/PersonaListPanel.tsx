@@ -60,6 +60,16 @@ export function PersonaListPanel() {
   if (!scenario) return null;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <p className="text-sm text-muted-foreground">Loading persona data...</p>
+      </div>
+    );
+  }
+
   const personas = currentResult.personaResponses;
 
   // Apply filters

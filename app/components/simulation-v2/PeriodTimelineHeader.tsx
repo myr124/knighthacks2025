@@ -13,6 +13,10 @@ export function PeriodTimelineHeader() {
   if (!scenario) return null;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult || !currentResult.operationalPeriod) return null;
+
   const op = currentResult.operationalPeriod;
 
   // Parse time string (e.g., "T-120h" or "T+24h")

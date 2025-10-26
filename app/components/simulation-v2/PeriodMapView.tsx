@@ -184,6 +184,12 @@ export function PeriodMapView() {
   }
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult) {
+    return <div className="w-full h-full bg-accent animate-pulse" />;
+  }
+
   const personas = currentResult.personaResponses;
 
   // Count by location status

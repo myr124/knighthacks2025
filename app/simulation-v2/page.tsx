@@ -28,6 +28,22 @@ const PeriodMapView = dynamic(
 
 export default function SimulationV2Page() {
   const scenario = useTTXStoreV2((state) => state.scenario);
+  const initializeScenario = useTTXStoreV2((state) => state.initializeScenario);
+
+  // Re-check for ADK data when component mounts
+  useEffect(() => {
+    // Only reinitialize if we detect new data in localStorage
+    const storedData = typeof window !== 'undefined' ? localStorage.getItem('scenarioData') : null;
+
+    if (storedData) {
+      console.log('🔄 Simulation page detected ADK data in localStorage, reinitializing...');
+      initializeScenario();
+    } else if (!scenario) {
+      // If no stored data and no scenario, initialize with default/API
+      console.log('⚠️  No ADK data found, initializing with default scenario...');
+      initializeScenario();
+    }
+  }, []);
 
   if (!scenario) {
     return (

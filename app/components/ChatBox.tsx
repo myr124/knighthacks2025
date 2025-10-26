@@ -205,12 +205,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({ selectedPlan }) => {
       }
 
       const data = await response.json();
-      console.log('API Response:', data);
+      console.log('✅ ADK API Response received:', data);
 
       // Store the response and navigate to simulation
       localStorage.setItem('scenarioData', JSON.stringify(data));
+      console.log('💾 Stored ADK data to localStorage');
 
       // Navigate to simulation page
+      console.log('🚀 Navigating to simulation page...');
       router.push('/simulation-v2');
     } catch (error) {
       console.error('Error calling API:', error);

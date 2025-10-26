@@ -463,13 +463,19 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
             console.log('🔄 Transforming ADK data using transformADKToScenarioResults...');
             const scenario = transformADKToScenarioResults(adkData);
 
-            // Clear localStorage to avoid using stale data
-            localStorage.removeItem('scenarioData');
-
             // Set the scenario in the store
             set({ scenario, currentPeriod: 1 });
             console.log('✅ Successfully loaded ADK scenario data with', scenario.periodResults.length, 'periods');
             console.log('✅ First period has', scenario.periodResults[0]?.personaResponses?.length, 'personas');
+
+            // Clear localStorage after a short delay to allow page to load
+            setTimeout(() => {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('scenarioData');
+                console.log('🧹 Cleared scenarioData from localStorage');
+              }
+            }, 1000);
+
             return;
           } catch (error) {
             console.error('❌ Error transforming ADK data:', error);
@@ -543,5 +549,6 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
 
 
 // Start initialization
-// initializeScenario();
-useTTXStoreV2.getState().initializeScenario();
+// Note: Initialization is now handled in the simulation page's useEffect
+// to ensure it happens after navigation and localStorage is set
+// useTTXStoreV2.getState().initializeScenario();

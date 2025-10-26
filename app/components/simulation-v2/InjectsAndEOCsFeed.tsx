@@ -80,6 +80,16 @@ export function InjectsAndEOCsFeed() {
   if (!scenario) return null;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult) {
+    return (
+      <div className="h-full flex items-center justify-center bg-background border rounded-xl">
+        <p className="text-sm text-muted-foreground">Loading event data...</p>
+      </div>
+    );
+  }
+
   const injects = currentResult.injects.map((i) => ({
     ...i,
     eventType: "inject" as const,

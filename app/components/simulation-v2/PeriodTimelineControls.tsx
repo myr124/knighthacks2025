@@ -29,6 +29,10 @@ export function PeriodTimelineControls() {
   if (!scenario) return null;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
+
+  // Safety check for undefined currentResult
+  if (!currentResult || !currentResult.operationalPeriod) return null;
+
   const op = currentResult.operationalPeriod;
 
   return (
