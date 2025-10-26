@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import React, { useState } from "react";
@@ -177,7 +177,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ selectedPlan }) => {
 
   const handleStart = async () => {
     if (!selectedPlan) {
-      alert('Please select a session from the sidebar first.');
+      alert("Please select a session from the sidebar first.");
       return;
     }
 
@@ -187,36 +187,33 @@ const ChatBox: React.FC<ChatBoxProps> = ({ selectedPlan }) => {
       // Convert the selected plan to a formatted JSON string for the prompt
       const promptData = JSON.stringify(selectedPlan, null, 2);
 
-      const response = await fetch(
-        'https://knighthacks2025backend.onrender.com/simulate-flow',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: promptData,
-          }),
-        }
-      );
+      const response = await fetch("http://localhost:8000/simulate-flow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: promptData,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`API request failed with status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ ADK API Response received:', data);
+      console.log("✅ ADK API Response received:", data);
 
       // Store the response and navigate to simulation
-      localStorage.setItem('scenarioData', JSON.stringify(data));
-      console.log('💾 Stored ADK data to localStorage');
+      localStorage.setItem("scenarioData", JSON.stringify(data));
+      console.log("💾 Stored ADK data to localStorage");
 
       // Navigate to simulation page
-      console.log('🚀 Navigating to simulation page...');
-      router.push('/simulation-v2');
+      console.log("🚀 Navigating to simulation page...");
+      router.push("/simulation-v2");
     } catch (error) {
-      console.error('Error calling API:', error);
-      alert('Failed to generate scenario. Please try again.');
+      console.error("Error calling API:", error);
+      alert("Failed to generate scenario. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -237,7 +234,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ selectedPlan }) => {
           className="text-sm px-4 py-3 rounded font-mono pointer-events-auto"
           variant="default"
         >
-          {selectedPlan ? 'Start Simulation' : 'Start'}
+          {selectedPlan ? "Start Simulation" : "Start"}
         </Button>
       </div>
     </>
