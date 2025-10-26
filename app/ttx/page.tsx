@@ -7,6 +7,7 @@ import { PeriodDetailView } from '@/app/components/ttx/PeriodDetailView';
 import { useTTXStore } from '@/lib/stores/ttxStore';
 import { Play, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/app/components/ThemeToggle';
 
 export default function TTXPage() {
   const scenario = useTTXStore((state) => state.scenario);
@@ -71,6 +72,7 @@ export default function TTXPage() {
               </>
             )}
           </Button>
+          <ThemeToggle />
         </div>
       </div>
 

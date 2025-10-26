@@ -109,15 +109,16 @@ export function AnalyticsSummary() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
+          className="flex"
         >
-          <Card>
+          <Card className="flex-1 flex flex-col">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Users className="h-4 w-4 text-blue-500" />
                 Total Population
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col justify-between">
               <div className="text-2xl font-bold">
                 <AnimatedCounter value={aggregates.totalPersonas} />
               </div>
@@ -130,15 +131,16 @@ export function AnalyticsSummary() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
+          className="flex"
         >
-          <Card>
+          <Card className="flex-1 flex flex-col">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-orange-500" />
                 Needs Assistance
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col justify-between">
               <div className="text-2xl font-bold">
                 <AnimatedCounter value={aggregates.needingAssistance} />
               </div>

@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { User, MapPin, Heart, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
 
@@ -50,16 +49,16 @@ export function PersonaDetailDialog() {
 
   return (
     <Dialog open={!!selectedPersonaId} onOpenChange={(open) => !open && setSelectedPersona(null)}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-3">
             <User className="h-5 w-5" />
             {persona.personaName}
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto pr-4">
+          <div className="space-y-4 pb-4">
             {/* Current Status */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -289,7 +288,7 @@ export function PersonaDetailDialog() {
             </Card>
             </motion.div>
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

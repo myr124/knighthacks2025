@@ -3,10 +3,16 @@ import MetricsPanel from "./components/MetricsPanel";
 import Globe from "./components/Globe";
 import ChatBox from "./components/ChatBox";
 import Header from "./components/Header"
+import { ThemeToggle } from "./components/ThemeToggle";
 
 export default function Home() {
   return (
-    <div className="flex h-screen w-full bg-black overflow-hidden">
+    <div className="flex h-screen w-full bg-background overflow-hidden relative">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       <div className="shrink-0">
         <Sidebar />
       </div>

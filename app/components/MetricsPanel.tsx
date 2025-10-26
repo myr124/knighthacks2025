@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 const StatRow = ({
   label,
   value,
-  colorClass = "text-gray-300",
+  colorClass = "text-foreground",
 }: {
   label: React.ReactNode;
   value: React.ReactNode;
@@ -15,7 +15,7 @@ const StatRow = ({
 }) => (
   <div className="flex items-center justify-between text-xs">
     <span className={colorClass}>{label}</span>
-    <span className="text-gray-400">{value}</span>
+    <span className="text-muted-foreground">{value}</span>
   </div>
 );
 
@@ -47,21 +47,21 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
     ];
 
   return (
-    <aside className="h-screen w-80 bg-black text-white border-l border-gray-800 flex flex-col px-5 py-5 gap-5">
+    <aside className="h-screen w-80 bg-background text-foreground border-l border-border flex flex-col px-5 py-5 gap-5">
       {/* Mission Status */}
-      <span className="text-gray-300 text-md tracking-wide">
+      <span className="text-foreground text-md tracking-wide">
         Simulation Config
       </span>
-      <Card className="bg-transparent border border-gray-800/60">
+      <Card className="bg-card border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm tracking-wide text-gray-200">
+          <CardTitle className="text-sm tracking-wide text-foreground">
             HURRICANE STATUS
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-2">
             <StatRow label="HAZARD CATEGORY" value={hazardCategory} />
-            <div className="relative w-full h-2 rounded-full bg-gray-800">
+            <div className="relative w-full h-2 rounded-full bg-muted">
               <div
                 className="absolute top-0 left-0 h-full rounded-full"
                 style={{
@@ -79,9 +79,9 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
       </Card>
 
       {/* Agent Activity */}
-      <Card className="bg-transparent border border-gray-800/60">
+      <Card className="bg-card border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm tracking-wide text-gray-200">
+          <CardTitle className="text-sm tracking-wide text-foreground">
             AGENT STATUS
           </CardTitle>
         </CardHeader>
@@ -93,8 +93,8 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
       </Card>
 
       {/* Analysis Input helper */}
-      <div className="mt-auto text-xs text-gray-400 space-y-1">
-        <Separator className="bg-gray-800" />
+      <div className="mt-auto text-xs text-muted-foreground space-y-1">
+        <Separator className="bg-border" />
         <div>{agentCount} Agents loaded</div>
       </div>
     </aside>

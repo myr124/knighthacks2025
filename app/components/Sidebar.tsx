@@ -99,10 +99,10 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="h-screen w-72 bg-black text-white flex flex-col border-r border-gray-800">
+    <aside className="h-screen w-72 bg-background text-foreground flex flex-col border-r border-border">
       {/* Top brand / breadcrumb */}
 
-      <div className="px-5 pt-5 pb-3 flex items-center gap-2 text-sm text-gray-300">
+      <div className="px-5 pt-5 pb-3 flex items-center gap-2 text-sm text-muted-foreground">
         <span className="opacity-80">Generate Emergency Plan</span>
       </div>
 
@@ -111,7 +111,7 @@ const Sidebar: React.FC = () => {
         <div className="mb-4">
           <Button
             variant="outline"
-            className="w-full border-gray-800 bg-black hover:bg-linear-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
+            className="w-full transition-all duration-200"
             onClick={() => window.location.href = '/editor'}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -120,10 +120,10 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Analysis Sessions */}
-        <Card className="bg-transparent border border-gray-700">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div>
-              <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">Hurricane Melissa</span>
+              <span className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 block">Hurricane Melissa</span>
               <div className="text-sm" style={{ color: 3 < 5 ? "#ef4444" : "#6b7280" }}>
                 Landfall in 3 days
               </div>
@@ -133,7 +133,7 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer status */}
-      <div className="mt-auto px-5 pb-5 text-[12px] text-gray-400 space-y-1">
+      <div className="mt-auto px-5 pb-5 text-[12px] text-muted-foreground space-y-1">
         <div>All rights reserved</div>
         <div className="pt-2 text-[11px] opacity-60">Version 1.0</div>
       </div>

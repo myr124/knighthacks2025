@@ -4,10 +4,16 @@ import React from "react";
 import { ConfigDialog } from "../components/ConfigDialog";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export default function EditorPage() {
   return (
-    <div className="min-h-screen w-full bg-background text-foreground p-8">
+    <div className="min-h-screen w-full bg-background text-foreground p-8 relative">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       <motion.div
         className="max-w-6xl mx-auto space-y-6"
         initial={{ opacity: 0, y: 20 }}
