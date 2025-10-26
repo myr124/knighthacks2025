@@ -27,7 +27,8 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
     location: 'Miami-Dade County, FL',
     severity: 'major',
     population: 2700000,
-    agents: 10
+    agents: 10,
+    time: 7
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,9 +52,10 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
               </SelectTrigger>
               <SelectContent className="bg-gray-900 border-gray-700 text-gray-100">
                 <SelectItem value="hurricane">Hurricane</SelectItem>
-                <SelectItem value="wildfire" disabled>Wildfire (Coming Soon)</SelectItem>
+                {/* <SelectItem value="wildfire" disabled>Wildfire (Coming Soon)</SelectItem> */}
                 <SelectItem value="flood" disabled>Flood (Coming Soon)</SelectItem>
-                <SelectItem value="earthquake" disabled>Earthquake (Coming Soon)</SelectItem>
+                <SelectItem value="epidemic" disabled>Epidemic (Coming Soon)</SelectItem>
+                {/* <SelectItem value="earthquake" disabled>Earthquake (Coming Soon)</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
@@ -115,25 +117,6 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
             />
             <p className="text-xs text-gray-400">
               Total population of the affected area
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="agent" className="text-gray-300">Agents</Label>
-            <Input
-              id="agent"
-              type="number"
-              min="0"
-              max="50"
-              step="1"
-              placeholder="10"
-              value={config.agents}
-              onChange={(e) => setConfig({ ...config, agents: parseInt(e.target.value) || 0 })}
-              required
-              className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
-            />
-            <p className="text-xs text-gray-400">
-              Total number of agents involved in the scenario
             </p>
           </div>
 

@@ -2,16 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ScenarioConfigForm } from '@/app/components/configure/ScenarioConfigForm';
-import { TTXScriptReviewPanel } from '@/app/components/configure/TTXScriptReviewPanel';
-import { generateTTXScript, type ScenarioConfig } from '@/lib/utils/ttxGenerator';
+import { ScenarioConfigForm } from '@/app/components/ScenarioConfigForm';
+import { TTXScriptReviewPanel } from '@/app/components/TTXScriptReviewPanel';
+import { generateTTX, type ScenarioConfig, type OperationalPeriod } from '@/lib/utils/ttxGenerator';
+// Removed mock plan loader; plans are now opened from the sidebar session tile
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ConfigurePage() {
   const router = useRouter();
-  const [generatedScript, setGeneratedScript] = useState<ReturnType<typeof generateTTXScript> | null>(null);
+  const [generatedScript, setGeneratedScript] = useState<ReturnType<typeof generateTTX> | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -21,7 +22,7 @@ export default function ConfigurePage() {
     // Simulate generation delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const script = generateTTXScript(config);
+  const script = generateTTX(config);
     setGeneratedScript(script);
     setIsGenerating(false);
   };
@@ -65,14 +66,14 @@ export default function ConfigurePage() {
           id: crypto.randomUUID(),
           name: `${generatedScript.scenarioType} - ${generatedScript.location}`,
           description: `${generatedScript.severity} ${generatedScript.scenarioType} scenario`,
-          scenarioType: generatedScript.scenarioType,
+          scenarioType: generatedScript.scenarioType as any,
           location: generatedScript.location,
-          startTime: generatedScript.periods[0].startTime,
-          endTime: generatedScript.periods[generatedScript.periods.length - 1].endTime,
+          startTime: '',
+          endTime: '',
           totalOperationalPeriods: generatedScript.periods.length
         },
         periodResults: result.periodResults.map((periodResult: any) => {
-          const period = generatedScript.periods.find(p => p.periodNumber === periodResult.periodNumber);
+          const period = generatedScript.periods.find((p: OperationalPeriod) => p.periodNumber === periodResult.periodNumber);
           return {
             periodNumber: periodResult.periodNumber,
             operationalPeriod: period,
@@ -89,7 +90,7 @@ export default function ConfigurePage() {
 
       // Store the result in Zustand
       const { useTTXStoreV2 } = await import('@/lib/stores/ttxStoreV2');
-      useTTXStoreV2.getState().setScenario(scenarioResults);
+  useTTXStoreV2.getState().setScenario(scenarioResults as any);
 
       // Navigate to simulation view
       router.push('/simulation-v2');
@@ -100,6 +101,8 @@ export default function ConfigurePage() {
       setIsSubmitting(false);
     }
   };
+
+  // Mock plan loader removed; use the Hurricane Melissa card in the sidebar to open session-stored plans
 
   // Helper to calculate aggregates
   function calculateAggregates(responses: any[]) {
@@ -172,13 +175,14 @@ export default function ConfigurePage() {
               onGenerate={handleGenerate}
               isGenerating={isGenerating}
             />
+            {/* Mock plan button removed; open from sidebar session tile instead */}
           </div>
 
           {/* Right: Script Review */}
           {generatedScript && (
             <div>
               <TTXScriptReviewPanel
-                script={generatedScript}
+                script={generatedScript as any}
                 onSubmit={handleSubmit}
                 isSubmitting={isSubmitting}
               />

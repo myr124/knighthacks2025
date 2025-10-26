@@ -1,11 +1,30 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ConfigDialog } from "../components/ConfigDialog";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { emergencyPlanToScript } from "@/lib/utils/emergencyPlan";
+import { loadLatestEmergencyPlan, loadPlanByKey } from "@/lib/utils/browserStorage";
+import type { TTXScript } from "@/lib/utils/ttxGenerator";
 
 export default function EditorPage() {
+  const search = useSearchParams();
+  const [title, setTitle] = useState<string>("");
+  const [initialScript, setInitialScript] = useState<TTXScript | null>(null);
+
+  useEffect(() => {
+    const planKey = search.get("plan");
+    if (!planKey) return;
+    const plan = planKey === "latest" ? loadLatestEmergencyPlan() : loadPlanByKey(planKey);
+    if (plan) {
+      const script = emergencyPlanToScript(plan) as unknown as TTXScript;
+      setInitialScript(script);
+      setTitle(`${plan.scenarioType} - ${plan.location}`);
+    }
+  }, [search]);
+
   return (
     <div className="min-h-screen w-full bg-background text-foreground p-8">
       <motion.div
@@ -44,6 +63,8 @@ export default function EditorPage() {
           <Textarea
             className="w-full max-w-xl rounded-lg bg-zinc-900/50 border border-zinc-800 focus-visible:ring-2 focus-visible:ring-cyan-600/60 focus-visible:border-zinc-700 text-lg text-zinc-200 placeholder-zinc-500"
             placeholder="Hurricane Plan 10/25"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             rows={1}
           />
         </motion.div>
@@ -55,7 +76,11 @@ export default function EditorPage() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <div className="p-6">
-            <ConfigDialog />
+            <ConfigDialog
+              initialScript={initialScript ?? undefined}
+              startOnReview={!!initialScript}
+              getSaveKey={() => title}
+            />
           </div>
         </motion.div>
       </motion.div>

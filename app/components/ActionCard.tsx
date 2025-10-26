@@ -47,26 +47,24 @@ export function ActionCard({ action, onEdit, onDelete }: ActionCardProps) {
             >
               {action.actionType.replace("_", " ")}
             </Badge>
-            {action.actionType === "evacuation_order" && (
-              <>
-                <Badge
-                  className={
-                    action.urgency === "mandatory"
-                      ? "bg-red-500 text-white dark:bg-red-700"
-                      : "bg-yellow-500 text-white dark:bg-yellow-700"
-                  }
-                >
-                  {action.urgency}
-                </Badge>
-                {action.zone && (
-                  <Badge
-                    variant="outline"
-                    className="dark:border-zinc-700 dark:text-zinc-300"
-                  >
-                    {action.zone}
-                  </Badge>
-                )}
-              </>
+            {action.urgency && (
+              <Badge
+                className={
+                  action.urgency === "mandatory"
+                    ? "bg-red-500 text-white dark:bg-red-700"
+                    : "bg-yellow-500 text-white dark:bg-yellow-700"
+                }
+              >
+                {action.urgency}
+              </Badge>
+            )}
+            {action.zone && (
+              <Badge
+                variant="outline"
+                className="dark:border-zinc-700 dark:text-zinc-300"
+              >
+                {action.zone}
+              </Badge>
             )}
           </div>
           <p className="text-sm dark:text-zinc-300 -ml-2">{action.details}</p>

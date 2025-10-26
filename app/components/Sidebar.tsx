@@ -1,102 +1,26 @@
 'use client'
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { ChevronLeft, Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { ScenarioConfigForm } from "./ScenarioConfigForm"
-import { TTXScriptReviewPanel } from "./TTXScriptReviewPanel"
-import type { ScenarioConfig, Inject, EOCAction, OperationalPeriod } from '@/lib/utils/ttxGenerator';
-import { ConfigDialog } from "./ConfigDialog"
+import { Plus, Edit2 } from "lucide-react";
 
 const Sidebar: React.FC = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState<'config' | 'review'>('config');
-  const [config, setConfig] = useState<ScenarioConfig>({
-    scenarioType: 'hurricane',
-    location: 'Miami-Dade County, FL',
-    severity: 'major',
-    population: 2700000,
-    agents: 25
-  });
-  const [script, setScript] = useState<{
-    scenarioType: string;
-    location: string;
-    severity: string;
-    population: number;
-    periods: (OperationalPeriod & {
-      injects: Inject[];
-      eocActions: EOCAction[];
-    })[];
-  } | null>(null);
+  // No dialog state needed; we navigate to the editor to load saved sessions
 
-  const handleGenerate = (generatedConfig: ScenarioConfig) => {
-    setConfig(generatedConfig);
-    // Dummy script for demo purposes
-    const dummyScript = {
-      scenarioType: generatedConfig.scenarioType,
-      location: generatedConfig.location,
-      severity: generatedConfig.severity,
-      population: generatedConfig.population,
-      periods: Array.from({ length: 5 }, (_, i) => ({
-        id: `op-${i+1}`,
-        periodNumber: i+1,
-        label: `Operational Period ${i+1}`,
-        phase: (['planning', 'preparation', 'response', 'response', 'recovery'] as const)[i % 5],
-        injects: [
-          {
-            id: `inj-${i+1}-1`,
-            time: '0800',
-            severity: 'medium' as const,
-            type: 'weather_update',
-            title: 'Storm Approaching',
-            description: 'Hurricane is expected to make landfall in 24 hours.'
-          }
-        ],
-        eocActions: [
-          {
-            id: `act-${i+1}-1`,
-            time: '0900',
-            actionType: 'public_alert' as const,
-            details: 'Issue evacuation warning for coastal areas.',
-            targetPopulation: '500,000 residents',
-            urgency: 'voluntary' as const,
-            zone: 'Zone A'
-          }
-        ]
-      }))
-    };
-    setScript(dummyScript);
-    setCurrentStep('review');
-  };
 
-  const handleSubmit = () => {
-    // TODO: Implement backend submission
-    console.log('Submitting script:', script);
-    setIsDialogOpen(false);
-    setCurrentStep('config');
-    setScript(null);
-  };
+  const [planTitles, setPlanTitles] = useState<string[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  const handleClose = () => {
-    setIsDialogOpen(false);
-    setCurrentStep('config');
-    setScript(null);
-  };
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Dynamically import to avoid SSR issues
+      import('@/lib/utils/browserStorage').then(mod => {
+        setPlanTitles(mod.listSavedPlanKeys());
+      });
+    }
+  }, []);
+
+  
 
   return (
     <aside className="h-screen w-72 bg-black text-white flex flex-col border-r border-gray-800">
@@ -119,17 +43,43 @@ const Sidebar: React.FC = () => {
           </Button>
         </div>
 
-        {/* Analysis Sessions */}
-        <Card className="bg-transparent border border-gray-700">
-          <CardContent className="p-4">
-            <div>
-              <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">Hurricane Melissa</span>
-              <div className="text-sm" style={{ color: 3 < 5 ? "#ef4444" : "#6b7280" }}>
-                Landfall in 3 days
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Saved Sessions List */}
+        {planTitles.length === 0 ? (
+          <div className="text-xs text-gray-500 mt-4">No saved sessions yet.</div>
+        ) : (
+          planTitles.map(title => {
+            const isSelected = selectedPlan === title;
+            return (
+              <Card
+                key={title}
+                className={`bg-transparent border transition mb-2 ${isSelected ? 'border-green-500' : 'border-gray-700'}`}
+              >
+                <CardContent className="p-4 flex items-center justify-between">
+                  <span
+                    className="flex-1 text-left cursor-pointer hover:underline"
+                    style={{ display: 'block' }}
+                    onClick={() => {
+                      setSelectedPlan(title);
+                      window.location.href = `/editor?plan=${encodeURIComponent(title)}`;
+                    }}
+                  >
+                    <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">{title}</span>
+                  </span>
+                  <button
+                    className="ml-2 p-1 rounded hover:bg-gray-800"
+                    title="Edit session"
+                    onClick={() => {
+                      setSelectedPlan(title);
+                      window.location.href = `/editor?plan=${encodeURIComponent(title)}&edit=true`;
+                    }}
+                  >
+                    <Edit2 className="h-4 w-4 text-gray-400" />
+                  </button>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       {/* Footer status */}

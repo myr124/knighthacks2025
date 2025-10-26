@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Tabs,
@@ -16,13 +17,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfigDialogProps {
   onScriptGenerated?: (script: TTXScript) => void;
+  initialScript?: TTXScript;
+  startOnReview?: boolean;
+  getSaveKey?: () => string | undefined;
 }
 
-export function ConfigDialog({ onScriptGenerated }: ConfigDialogProps) {
-  const [script, setScript] = useState<TTXScript | null>(null);
-  const [activeTab, setActiveTab] = useState('config');
+export function ConfigDialog({ onScriptGenerated, initialScript, startOnReview = false, getSaveKey }: ConfigDialogProps) {
+  const [script, setScript] = useState<TTXScript | null>(initialScript ?? null);
+  const [activeTab, setActiveTab] = useState(startOnReview ? 'review' : 'config');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+
+  // Keep internal state in sync if initialScript/startOnReview change
+  React.useEffect(() => {
+    if (initialScript) {
+      setScript(initialScript);
+      setActiveTab('review');
+    }
+  }, [initialScript]);
 
   const handleGenerate = async (config: any) => {
     setIsGenerating(true);
@@ -38,11 +51,9 @@ export function ConfigDialog({ onScriptGenerated }: ConfigDialogProps) {
   };
 
   const handleSubmit = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      console.log('Script submitted to backend');
-    }, 1000);
+    // After Save Script & Exit is clicked inside the review panel,
+    // navigate back to home page
+    router.push('/');
   };
 
   const resetScript = () => {
@@ -93,6 +104,7 @@ export function ConfigDialog({ onScriptGenerated }: ConfigDialogProps) {
                     script={script}
                     onSubmit={handleSubmit}
                     isSubmitting={isSubmitting}
+                    getSaveKey={getSaveKey}
                   />
                 </motion.div>
               ) : (
