@@ -39,6 +39,7 @@ export interface TTXScript {
   scenarioType: string;
   location: string;
   severity: string;
+  time?: number;
   population: number;
   periods: (OperationalPeriod & {
     injects: Inject[];
@@ -136,6 +137,7 @@ export function generateTTX(config: ScenarioConfig): TTXScript {
     scenarioType: config.scenarioType,
     location: config.location,
     severity: config.severity,
+    time: config.time,
     population: config.population,
     periods,
   };

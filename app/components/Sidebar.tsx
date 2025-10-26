@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,37 +18,21 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
-  const router = useRouter();
-  const pathname = usePathname();
+  // Dialog state removed; navigation used for new plan creation
+
   const [planTitles, setPlanTitles] = useState<string[]>([]);
 
-  const loadPlanTitles = () => {
-    if (typeof window !== 'undefined') {
-      import('@/lib/utils/browserStorage').then(mod => {
-        const keys = mod.listSavedPlanKeys();
-        setPlanTitles(keys);
+  // Helper to refresh plan titles from sessionStorage
+  const refreshPlanTitles = () => {
+    if (typeof window !== "undefined") {
+      import("@/lib/utils/browserStorage").then((mod) => {
+        setPlanTitles(mod.listSavedPlanKeys());
       });
     }
   };
 
   useEffect(() => {
-    // Load whenever pathname changes (e.g., navigating back from /editor)
-    loadPlanTitles();
-  }, [pathname]);
-
-  useEffect(() => {
-    // Listen for storage events from other tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key?.startsWith('emergencyPlan:') || e.key === null) {
-        loadPlanTitles();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    refreshPlanTitles();
   }, []);
 
   return (
@@ -66,7 +50,9 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
           <Button
             variant="outline"
             className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
-            onClick={() => router.push('/editor')}
+            onClick={() => {
+              window.location.href = "/editor?new=true";
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Create New Session
@@ -75,20 +61,23 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
 
         {/* Saved Sessions List */}
         {planTitles.length === 0 ? (
-          <div className="text-xs text-gray-500 mt-4">No saved sessions yet.</div>
+          <div className="text-xs text-gray-500 mt-4">
+            No saved sessions yet.
+          </div>
         ) : (
-          planTitles.map(title => {
+          planTitles.map((title) => {
             const isSelected = selectedPlan && selectedPlan.title === title;
             return (
               <Card
                 key={title}
-                className={`bg-transparent border transition mb-2 ${isSelected ? 'border-green-500' : 'border-gray-700'} cursor-pointer`}
+                className={`bg-transparent border transition mb-2 ${
+                  isSelected ? "border-green-500" : "border-gray-700"
+                } cursor-pointer`}
                 onClick={() => {
                   if (selectedPlan && selectedPlan.title === title) {
                     setSelectedPlan(null);
                   } else {
-                    // Load plan data from sessionStorage
-                    import('@/lib/utils/browserStorage').then(mod => {
+                    import("@/lib/utils/browserStorage").then((mod) => {
                       const plan = mod.loadPlanByKey(title);
                       setSelectedPlan({ ...plan, title });
                     });
@@ -98,20 +87,55 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
                 <CardContent className="p-4 flex items-center justify-between">
                   <span
                     className="flex-1 text-left cursor-default"
-                    style={{ display: 'block' }}
+                    style={{ display: "block" }}
                   >
-                    <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">{title}</span>
+                    <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">
+                      {title}
+                    </span>
                   </span>
-                  <button
-                    className="ml-2 p-1 rounded hover:bg-gray-800"
-                    title="Edit session"
-                    onClick={e => {
-                      e.stopPropagation();
-                      window.location.href = `/editor?plan=${encodeURIComponent(title)}&edit=true`;
-                    }}
-                  >
-                    <Edit2 className="h-4 w-4 text-gray-400" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="p-1 rounded hover:bg-gray-800"
+                      title="Edit session"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/editor?plan=${encodeURIComponent(
+                          title
+                        )}&edit=true`;
+                      }}
+                    >
+                      <Edit2 className="h-4 w-4 text-gray-400" />
+                    </button>
+                    <button
+                      className="p-1 rounded hover:bg-red-900"
+                      title="Delete session"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const mod = await import("@/lib/utils/browserStorage");
+                        mod.deletePlanByKey(title);
+                        if (selectedPlan && selectedPlan.title === title) {
+                          setSelectedPlan(null);
+                        }
+                        refreshPlanTitles();
+                      }}
+                    >
+                      {/* Simple trash icon using SVG for minimal dependency */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 text-red-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </CardContent>
               </Card>
             );

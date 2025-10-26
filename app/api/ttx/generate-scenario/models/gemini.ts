@@ -4,6 +4,7 @@ export interface ScenarioRequest {
   severity: string;
   population: number;
   agents: number;
+  time?: number;
 }
 
 export interface Inject {
@@ -39,17 +40,16 @@ export interface ActionPlan {
 }
 
 // Placeholder for when @google/generative-ai is installed
+import { GoogleGenerativeAI } from '@google/generative-ai';
 let genAI: any = null;
 
 try {
-  // This will work once the package is installed
-  // import { GoogleGenerativeAI } from '@google/generative-ai';
-  // genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+  genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 } catch (e) {
-  console.log('Google Generative AI package not installed. Using template-based generation.');
+  console.log('Google Generative AI package not installed or failed to initialize.');
 }
 
-const SCENARIO_TEMPLATES = {
+const SCENARIO_TEMPLATES: Record<string, string> = {
   hurricane: `Generate a realistic emergency response scenario for a hurricane in {location} affecting {population} residents with {severity} severity. 
 Create exactly 13 operational periods from T-72h (72 hours before landfall) to T+84h (84 hours after landfall).
 Follow this progression: 3 planning periods (T-72h to T-36h), 2 preparation periods (T-36h to T-12h), 2 response periods (T-0h to T+24h), and 6 recovery periods (T+24h to T+84h).
@@ -91,10 +91,13 @@ Include water level updates, evacuation orders, shelter operations, dam status u
 
 export async function generateScenarioWithGemini(request: ScenarioRequest): Promise<ActionPlan> {
   // If Google API is available, use it; otherwise fall back to template-based generation
+    
+  return generateWithTemplate(request);
+
   if (process.env.GOOGLE_API_KEY && genAI) {
-    return generateWithGeminiAPI(request);
+    // return generateWithGeminiAPI(request);
   } else {
-    return generateWithTemplate(request);
+    // If Gemini API is not available, use template-based fallback
   }
 }
 
@@ -103,7 +106,8 @@ async function generateWithGeminiAPI(request: ScenarioRequest): Promise<ActionPl
     throw new Error('Gemini API not initialized');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+  const model = genAI.getGenerativeModel({ model: modelName });
 
   const template = SCENARIO_TEMPLATES[request.scenarioType] || SCENARIO_TEMPLATES.hurricane;
   const prompt = template
@@ -112,15 +116,43 @@ async function generateWithGeminiAPI(request: ScenarioRequest): Promise<ActionPl
     .replace('{severity}', request.severity);
 
   const systemPrompt = `You are an expert emergency management planner creating realistic TTX (Tabletop Exercise) scenarios.
-Generate a complete JSON response with exactly 13 operational periods. Each period must have:
-- periodNumber (1-13)
-- startTime (in T±Xh format)
-- endTime (in T±Xh format)
-- phase (planning, preparation, response, or recovery)
-- injects (array of 2-3 realistic scenario events)
-- eocActions (array of 2-4 corresponding emergency operations center actions)
+Return ONLY valid JSON in the following strict format (no extra fields, no comments):
 
-Return ONLY valid JSON.`;
+{
+  "scenarioId": "<uuid>",
+  "scenarioType": "<string>",
+  "location": "<string>",
+  "totalOperationalPeriods": 13,
+  "actionPlan": {
+    "periods": [
+      {
+        "periodNumber": <number>,
+        "phase": "planning|preparation|response|recovery",
+        "injects": [
+          {
+            "time": "<string>",
+            "severity": "low|medium|high|critical",
+            "type": "<string>",
+            "title": "<string>",
+            "description": "<string>"
+          }
+        ],
+        "eocActions": [
+          {
+            "time": "<string>",
+            "actionType": "<string>",
+            "details": "<string>",
+            "targetPopulation": "<string>",
+            "urgency": "voluntary|mandatory",
+            "zone": "<string>"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+All periods must be present, and all arrays must have at least 3 injects and 1 eocAction per period. Do not include any extra fields. Do not include comments. Do not wrap the JSON in markdown. Only output the JSON object.`;
 
   try {
     const result = await model.generateContent({
@@ -133,10 +165,24 @@ Return ONLY valid JSON.`;
     });
 
     const response = result.response.text();
-    let jsonText = response;
-    const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch) {
-      jsonText = jsonMatch[1];
+    let jsonText = response?.trim() || '';
+
+    // Try to extract fenced code block first
+    const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (fenceMatch && fenceMatch[1]) {
+      jsonText = fenceMatch[1].trim();
+    } else {
+      // Fallback: slice from first '{' to last '}'
+      const first = jsonText.indexOf('{');
+      const last = jsonText.lastIndexOf('}');
+      if (first !== -1 && last !== -1 && last > first) {
+        jsonText = jsonText.slice(first, last + 1).trim();
+      }
+    }
+
+    if (!jsonText) {
+      console.error('Gemini returned empty or unparsable response:', response);
+      throw new Error('Gemini returned empty or unparsable response');
     }
 
     const generatedData = JSON.parse(jsonText);
@@ -151,15 +197,19 @@ export async function generateWithTemplate(request: ScenarioRequest): Promise<Ac
   // Template-based generation for when Gemini API is not available
   // This uses realistic scenario structures based on emergency management best practices
   
-  const baseTimeOffset = -72; // Start at T-72h
+  // Each period = 12 hours, number of periods = time * 2
+  const numPeriods = Math.max(1, (request.time ?? 3) * 2);
+  const baseTimeOffset = -12 * numPeriods / 2; // Center around T0
   const periods: OperationalPeriod[] = [];
 
-  const phaseProgression: Array<'planning' | 'preparation' | 'response' | 'recovery'> = [
-    'planning', 'planning', 'planning',
-    'preparation', 'preparation',
-    'response', 'response',
-    'recovery', 'recovery', 'recovery', 'recovery', 'recovery', 'recovery'
-  ];
+  // Dynamic phase progression: first 1/4 planning, next 1/4 preparation, next 1/4 response, last 1/4 recovery
+  const phaseProgression: Array<'planning' | 'preparation' | 'response' | 'recovery'> = Array.from({ length: numPeriods }, (_, i) => {
+    const frac = i / numPeriods;
+    if (frac < 0.25) return 'planning';
+    if (frac < 0.5) return 'preparation';
+    if (frac < 0.75) return 'response';
+    return 'recovery';
+  });
 
   const injectTypesByScenario = {
     hurricane: ['weather_update', 'public_behavior', 'infrastructure', 'forecast_change'],
@@ -182,7 +232,7 @@ export async function generateWithTemplate(request: ScenarioRequest): Promise<Ac
 
   const zones = ['Zone A', 'Zone B', 'Zone C', 'Zone D'];
 
-  for (let i = 0; i < 13; i++) {
+  for (let i = 0; i < numPeriods; i++) {
     const startHour = baseTimeOffset + (i * 12);
     const endHour = startHour + 12;
     const phase = phaseProgression[i];
@@ -239,22 +289,42 @@ export async function generateWithTemplate(request: ScenarioRequest): Promise<Ac
 }
 
 function normalizeActionPlan(data: any): ActionPlan {
-  if (!data.periods || !Array.isArray(data.periods)) {
-    throw new Error('Invalid response structure: missing periods array');
+  // Accept either strict format (actionPlan.periods) or fallback (periods)
+  let periodsInput: any[] | undefined = undefined;
+  if (data && Array.isArray(data.periods)) {
+    periodsInput = data.periods;
+  } else if (data && data.actionPlan && Array.isArray(data.actionPlan.periods)) {
+    periodsInput = data.actionPlan.periods;
   }
-
-  if (data.periods.length !== 13) {
-    throw new Error(`Expected 13 periods, got ${data.periods.length}`);
+  if (!periodsInput) {
+    throw new Error('Gemini response missing periods array');
   }
-
-  const normalizedPeriods = data.periods.map((period: any, index: number) => ({
+  if (periodsInput.length !== 13) {
+    throw new Error(`Expected 13 periods, got ${periodsInput.length}`);
+  }
+  periodsInput.forEach((period: any, idx: number) => {
+    const requiredFields = ['periodNumber', 'phase', 'injects', 'eocActions'];
+    requiredFields.forEach(field => {
+      if (!(field in period)) {
+        throw new Error(`Period ${idx + 1} missing required field: ${field}`);
+      }
+    });
+    if (!Array.isArray(period.injects) || period.injects.length < 3) {
+      throw new Error(`Period ${idx + 1} injects must be an array with at least 3 items`);
+    }
+    if (!Array.isArray(period.eocActions) || period.eocActions.length < 1) {
+      throw new Error(`Period ${idx + 1} eocActions must be an array with at least 1 item`);
+    }
+  });
+  // Normalize into ActionPlan shape
+  const normalizedPeriods: OperationalPeriod[] = periodsInput.map((period: any, index: number) => ({
     periodNumber: period.periodNumber || index + 1,
     startTime: period.startTime || `T${-72 + (index * 12)}h`,
     endTime: period.endTime || `T${-72 + ((index + 1) * 12)}h`,
     phase: validatePhase(period.phase),
     injects: (period.injects || []).map((inject: any, idx: number) => ({
       id: inject.id || `inject-${index + 1}-${idx + 1}`,
-      time: inject.time || period.startTime,
+      time: inject.time || (period.startTime || `T${-72 + (index * 12)}h`),
       type: inject.type || 'weather_update',
       title: inject.title || 'Event',
       description: inject.description || 'Event occurring',
@@ -262,7 +332,7 @@ function normalizeActionPlan(data: any): ActionPlan {
     })),
     eocActions: (period.eocActions || []).map((action: any, idx: number) => ({
       id: action.id || `action-${index + 1}-${idx + 1}`,
-      time: action.time || period.startTime,
+      time: action.time || (period.startTime || `T${-72 + (index * 12)}h`),
       actionType: action.actionType || 'public_announcement',
       details: action.details || 'Action being taken',
       targetPopulation: action.targetPopulation || 'All residents',

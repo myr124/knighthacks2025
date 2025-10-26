@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Loader2, Wand2 } from 'lucide-react';
-import type { ScenarioConfig } from '@/lib/utils/ttxGenerator';
+} from "@/components/ui/select";
+import { Loader2, Wand2 } from "lucide-react";
+import type { ScenarioConfig } from "@/lib/utils/ttxGenerator";
 
 interface ScenarioConfigFormProps {
   onGenerate: (config: ScenarioConfig) => void;
@@ -21,15 +27,30 @@ interface ScenarioConfigFormProps {
   onReset?: () => void;
 }
 
-export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }: ScenarioConfigFormProps) {
+export function ScenarioConfigForm({
+  onGenerate,
+  isGenerating = false,
+  onReset,
+}: ScenarioConfigFormProps) {
   const [config, setConfig] = useState<ScenarioConfig>({
-    scenarioType: 'hurricane',
-    location: 'Miami-Dade County, FL',
-    severity: 'major',
-    population: 2700000,
-    agents: 10,
-    time: 7
+    scenarioType: "hurricane",
+    location: "",
+    severity: "minor",
+    population: 0,
+    agents: 0,
+    time: 1,
   });
+  const handleReset = () => {
+    setConfig({
+      scenarioType: "hurricane",
+      location: "",
+      severity: "minor",
+      population: 0,
+      agents: 0,
+      time: 1,
+    });
+    if (onReset) onReset();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,19 +63,33 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
         <form onSubmit={handleSubmit} className="space-y-6 pt-2">
           {/* Scenario Type */}
           <div className="space-y-2">
-            <Label htmlFor="scenarioType" className="text-gray-300">Scenario Type</Label>
+            <Label htmlFor="scenarioType" className="text-gray-300">
+              Scenario Type
+            </Label>
             <Select
               value={config.scenarioType}
-              onValueChange={(value) => setConfig({ ...config, scenarioType: value as ScenarioConfig['scenarioType'] })}
+              onValueChange={(value) =>
+                setConfig({
+                  ...config,
+                  scenarioType: value as ScenarioConfig["scenarioType"],
+                })
+              }
             >
-              <SelectTrigger id="scenarioType" className="bg-gray-800 border-gray-700 text-gray-100">
+              <SelectTrigger
+                id="scenarioType"
+                className="bg-gray-800 border-gray-700 text-gray-100"
+              >
                 <SelectValue placeholder="Select scenario type" />
               </SelectTrigger>
               <SelectContent className="bg-gray-900 border-gray-700 text-gray-100">
                 <SelectItem value="hurricane">Hurricane</SelectItem>
                 {/* <SelectItem value="wildfire" disabled>Wildfire (Coming Soon)</SelectItem> */}
-                <SelectItem value="flood" disabled>Flood (Coming Soon)</SelectItem>
-                <SelectItem value="epidemic" disabled>Epidemic (Coming Soon)</SelectItem>
+                <SelectItem value="flood" disabled>
+                  Flood (Coming Soon)
+                </SelectItem>
+                <SelectItem value="epidemic" disabled>
+                  Epidemic (Coming Soon)
+                </SelectItem>
                 {/* <SelectItem value="earthquake" disabled>Earthquake (Coming Soon)</SelectItem> */}
               </SelectContent>
             </Select>
@@ -62,13 +97,17 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
 
           {/* Location */}
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-gray-300">Location</Label>
+            <Label htmlFor="location" className="text-gray-300">
+              Location
+            </Label>
             <Input
               id="location"
               type="text"
               placeholder="e.g., Miami-Dade County, FL"
               value={config.location}
-              onChange={(e) => setConfig({ ...config, location: e.target.value })}
+              onChange={(e) =>
+                setConfig({ ...config, location: e.target.value })
+              }
               required
               className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
             />
@@ -79,49 +118,90 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
 
           {/* Severity */}
           <div className="space-y-2">
-            <Label htmlFor="severity" className="text-gray-300">Severity</Label>
+            <Label htmlFor="severity" className="text-gray-300">
+              Severity
+            </Label>
             <Select
               value={config.severity}
-              onValueChange={(value) => setConfig({ ...config, severity: value as ScenarioConfig['severity'] })}
+              onValueChange={(value) =>
+                setConfig({
+                  ...config,
+                  severity: value as ScenarioConfig["severity"],
+                })
+              }
             >
-              <SelectTrigger id="severity" className="bg-gray-800 border-gray-700 text-gray-100">
+              <SelectTrigger
+                id="severity"
+                className="bg-gray-800 border-gray-700 text-gray-100"
+              >
                 <SelectValue placeholder="Select severity" />
               </SelectTrigger>
               <SelectContent className="bg-gray-900 border-gray-700 text-gray-100">
-                <SelectItem value="minor">Minor (Category 1 Hurricane)</SelectItem>
-                <SelectItem value="moderate">Moderate (Category 2 Hurricane)</SelectItem>
-                <SelectItem value="major">Major (Category 3 Hurricane)</SelectItem>
-                <SelectItem value="severe">Severe (Category 4 Hurricane)</SelectItem>
-                <SelectItem value="catastrophic">Catastrophic (Category 5 Hurricane)</SelectItem>
+                <SelectItem value="minor">
+                  Minor (Category 1 Hurricane)
+                </SelectItem>
+                <SelectItem value="moderate">
+                  Moderate (Category 2 Hurricane)
+                </SelectItem>
+                <SelectItem value="major">
+                  Major (Category 3 Hurricane)
+                </SelectItem>
+                <SelectItem value="severe">
+                  Severe (Category 4 Hurricane)
+                </SelectItem>
+                <SelectItem value="catastrophic">
+                  Catastrophic (Category 5 Hurricane)
+                </SelectItem>
               </SelectContent>
             </Select>
-             <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400">
               Enter the hurricane severity level
             </p>
           </div>
 
-          {/* Population */}
+          {/* Time */}
           <div className="space-y-2">
-            <Label htmlFor="population" className="text-gray-300">Population</Label>
+            <Label htmlFor="time" className="text-gray-300">
+              Duration (Days)
+            </Label>
             <Input
-              id="population"
+              id="time"
               type="number"
-              min="10000"
-              max="10000000"
-              step="10000"
-              placeholder="e.g., 2700000"
-              value={config.population}
-              onChange={(e) => setConfig({ ...config, population: parseInt(e.target.value) || 0 })}
+              min={1}
+              max={7}
+              step={1}
+              placeholder="e.g., 3"
+              value={config.time === 0 ? "" : config.time}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty string for editing
+                if (value === "") {
+                  setConfig({ ...config, time: 0 });
+                  return;
+                }
+                const n = Number(value);
+                setConfig({ ...config, time: n });
+              }}
+              onBlur={() => {
+                // Clamp on blur
+                const clamped = Math.max(1, Math.min(7, config.time));
+                setConfig({ ...config, time: clamped });
+              }}
               required
               className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
             />
             <p className="text-xs text-gray-400">
-              Total population of the affected area
+              Enter the duration of the scenario (1-7 days)
             </p>
           </div>
 
-          {/* Submit Button */}
-          <Button type="submit" className="w-full bg-indigo-700 hover:bg-indigo-800 text-white border-none" size="lg" disabled={isGenerating}>
+          {/* Save Button */}
+          <Button
+            type="submit"
+            className="w-full bg-indigo-700 hover:bg-indigo-800 text-white border-none"
+            size="lg"
+            disabled={isGenerating}
+          >
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -141,7 +221,7 @@ export function ScenarioConfigForm({ onGenerate, isGenerating = false, onReset }
               type="button"
               variant="outline"
               className="w-full border-gray-700 text-white-800 hover:bg-gray-800 hover:text-white bg-gray-700"
-              onClick={onReset}
+              onClick={handleReset}
             >
               Reset Configuration
             </Button>
