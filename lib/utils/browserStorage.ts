@@ -1,3 +1,11 @@
+export function deletePlanByKey(key: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(NAMESPACE + key);
+  } catch (e) {
+    console.error('Failed to delete named plan from storage:', e);
+  }
+}
 // Simple browser storage helpers for emergency plan JSON
 // Stores the latest plan in localStorage under a fixed key.
 

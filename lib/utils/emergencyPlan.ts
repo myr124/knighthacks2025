@@ -16,6 +16,8 @@ export interface EmergencyPlan {
   scenarioId: string;
   scenarioType: string;
   location: string;
+  severity?: string;
+  timeTillLandfall?: number;
   totalOperationalPeriods: number;
   actionPlan: {
     periods: EmergencyPlanPeriod[];
@@ -30,6 +32,8 @@ export function toEmergencyPlan(script: EditorTTXScript, scenarioId?: string): E
     scenarioId: safeScenarioId,
     scenarioType: script.scenarioType,
     location: script.location,
+    severity: (script as any).severity,
+    timeTillLandfall: (script as any).time ?? undefined,
     totalOperationalPeriods: script.periods.length,
     actionPlan: {
       periods: script.periods.map((p) => ({
@@ -90,9 +94,10 @@ export function emergencyPlanToScript(plan: EmergencyPlan): EditorTTXScript {
   return {
     scenarioType: plan.scenarioType,
     location: plan.location,
-    // These fields are not part of the emergency plan; set reasonable defaults
-    severity: 'moderate',
+    // Map optional fields if present
+    severity: (plan as any).severity ?? 'moderate',
     population: 0,
+    ...(plan.timeTillLandfall !== undefined ? { time: plan.timeTillLandfall } : {}),
     periods,
   };
 }

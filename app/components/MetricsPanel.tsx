@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 
 const StatRow = ({
@@ -86,9 +85,16 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-2">
-            <StatRow label="AGENT COUNT" value={ agentCount } />
-          </div>
+            <div className="space-y-2">
+            <StatRow
+              label="AGENT COUNT"
+              value={
+              agentCount === 50
+                ? `${agentCount} (Max)`
+                : agentCount
+              }
+            />
+            </div>
         </CardContent>
       </Card>
 

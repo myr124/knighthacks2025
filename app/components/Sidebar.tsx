@@ -29,18 +29,22 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // No dialog state needed; we navigate to the editor to load saved sessions
+  // Dialog state removed; navigation used for new plan creation
 
 
   const [planTitles, setPlanTitles] = useState<string[]>([]);
 
-  useEffect(() => {
+  // Helper to refresh plan titles from sessionStorage
+  const refreshPlanTitles = () => {
     if (typeof window !== 'undefined') {
       import('@/lib/utils/browserStorage').then(mod => {
         setPlanTitles(mod.listSavedPlanKeys());
       });
     }
+  };
+
+  useEffect(() => {
+    refreshPlanTitles();
   }, []);
 
   return (
@@ -55,20 +59,14 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
       <div className="px-5 py-2 space-y-6">
         {/* Create Session */}
         <div className="mb-4">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-                <Button
-                variant="outline"
-                className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
-                >
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Session
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] w-[95vw] sm:w-[90vw] bg-gray-900 border-gray-700 overflow-y-auto">
-              <ConfigDialog />
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="outline"
+            className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
+            onClick={() => { window.location.href = '/editor?new=true'; }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Session
+          </Button>
         </div>
 
         {/* Saved Sessions List */}
@@ -85,7 +83,6 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
                   if (selectedPlan && selectedPlan.title === title) {
                     setSelectedPlan(null);
                   } else {
-                    // Load plan data from sessionStorage
                     import('@/lib/utils/browserStorage').then(mod => {
                       const plan = mod.loadPlanByKey(title);
                       setSelectedPlan({ ...plan, title });
@@ -100,16 +97,34 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
                   >
                     <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">{title}</span>
                   </span>
-                  <button
-                    className="ml-2 p-1 rounded hover:bg-gray-800"
-                    title="Edit session"
-                    onClick={e => {
-                      e.stopPropagation();
-                      window.location.href = `/editor?plan=${encodeURIComponent(title)}&edit=true`;
-                    }}
-                  >
-                    <Edit2 className="h-4 w-4 text-gray-400" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="p-1 rounded hover:bg-gray-800"
+                      title="Edit session"
+                      onClick={e => {
+                        e.stopPropagation();
+                        window.location.href = `/editor?plan=${encodeURIComponent(title)}&edit=true`;
+                      }}
+                    >
+                      <Edit2 className="h-4 w-4 text-gray-400" />
+                    </button>
+                    <button
+                      className="p-1 rounded hover:bg-red-900"
+                      title="Delete session"
+                      onClick={async e => {
+                        e.stopPropagation();
+                        const mod = await import('@/lib/utils/browserStorage');
+                        mod.deletePlanByKey(title);
+                        if (selectedPlan && selectedPlan.title === title) {
+                          setSelectedPlan(null);
+                        }
+                        refreshPlanTitles();
+                      }}
+                    >
+                      {/* Simple trash icon using SVG for minimal dependency */}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
                 </CardContent>
               </Card>
             );

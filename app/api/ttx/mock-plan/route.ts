@@ -8,6 +8,7 @@ export async function GET() {
     scenarioType: 'hurricane',
     location: 'Central Florida',
     severity: 'severe',
+    time: 3,
     population: 1500000,
     agents: 50,
   } as const;
