@@ -10,9 +10,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { User, MapPin, Heart, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
+import { User, MapPin, Heart, AlertCircle, CheckCircle, TrendingUp, Phone } from 'lucide-react';
 
 const SENTIMENT_COLORS: Record<string, string> = {
   calm: 'bg-green-500',
@@ -36,6 +37,7 @@ export function PersonaDetailDialog() {
   const currentPeriod = useTTXStoreV2((state) => state.currentPeriod);
   const selectedPersonaId = useTTXStoreV2((state) => state.selectedPersonaId);
   const setSelectedPersona = useTTXStoreV2((state) => state.setSelectedPersona);
+  const setInterviewPersona = useTTXStoreV2((state) => state.setInterviewPersona);
   const getPersonaHistory = useTTXStoreV2((state) => state.getPersonaHistory);
 
   if (!scenario || !selectedPersonaId) return null;
@@ -51,10 +53,23 @@ export function PersonaDetailDialog() {
     <Dialog open={!!selectedPersonaId} onOpenChange={(open) => !open && setSelectedPersona(null)}>
       <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-3">
-            <User className="h-5 w-5" />
-            {persona.personaName}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-3">
+              <User className="h-5 w-5" />
+              {persona.personaName}
+            </DialogTitle>
+            <Button
+              onClick={() => {
+                setInterviewPersona(persona.personaId);
+                setSelectedPersona(null); // Close details dialog
+              }}
+              className="flex items-center gap-2"
+              variant="default"
+            >
+              <Phone className="h-4 w-4" />
+              Call Persona
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto pr-4">

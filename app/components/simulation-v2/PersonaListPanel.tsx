@@ -22,8 +22,9 @@ import {
 } from "@/components/ui/accordion";
 import { getDemographicLabel } from "@/lib/utils/personaDemographics";
 import { AnimatedCounter } from "./AnimatedCounter";
+import { PhoneInterviewModal } from "./PhoneInterviewModal";
 import type { PersonaResponse } from "@/lib/types/ttx";
-import { Users, Filter, X } from "lucide-react";
+import { Users, Filter, X, Phone } from "lucide-react";
 
 const SENTIMENT_COLORS: Record<PersonaResponse["sentiment"], string> = {
   calm: "bg-green-500",
@@ -46,6 +47,7 @@ export function PersonaListPanel() {
   const scenario = useTTXStoreV2((state) => state.scenario);
   const currentPeriod = useTTXStoreV2((state) => state.currentPeriod);
   const setSelectedPersona = useTTXStoreV2((state) => state.setSelectedPersona);
+  const setInterviewPersona = useTTXStoreV2((state) => state.setInterviewPersona);
 
   const [filters, setFilters] = useState({
     sentiment: "all",
@@ -288,15 +290,17 @@ export function PersonaListPanel() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Card
-                    className={`hover:shadow-md transition-shadow cursor-pointer border-l-4 ${
+                    className={`hover:shadow-md transition-shadow border-l-4 ${
                       LOCATION_COLORS[persona.location]
                     }`}
-                    onClick={() => setSelectedPersona(persona.personaId)}
                   >
                     <CardContent className="p-3">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0">
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => setSelectedPersona(persona.personaId)}
+                        >
                           <h4 className="font-medium text-sm truncate">
                             {persona.personaName}
                           </h4>
@@ -304,17 +308,32 @@ export function PersonaListPanel() {
                             {persona.personaType}
                           </p>
                         </div>
-                        <Badge
-                          className={`${
-                            SENTIMENT_COLORS[persona.sentiment]
-                          } text-white text-xs ml-2`}
-                        >
-                          {persona.sentiment}
-                        </Badge>
+                        <div className="flex items-center gap-2 ml-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInterviewPersona(persona.personaId);
+                            }}
+                            className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                            title="Interview Persona"
+                          >
+                            <Phone className="h-4 w-4" />
+                          </button>
+                          <Badge
+                            className={`${
+                              SENTIMENT_COLORS[persona.sentiment]
+                            } text-white text-xs`}
+                          >
+                            {persona.sentiment}
+                          </Badge>
+                        </div>
                       </div>
 
                       {/* Demographics */}
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs mb-2">
+                      <div
+                        className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs mb-2 cursor-pointer"
+                        onClick={() => setSelectedPersona(persona.personaId)}
+                      >
                         <div className="flex items-center gap-1">
                           <span className="text-muted-foreground">Age:</span>
                           <span>{persona.demographics.age}</span>
@@ -350,7 +369,10 @@ export function PersonaListPanel() {
                       </div>
 
                       {/* Decision & Location */}
-                      <div className="flex items-center gap-2 text-xs">
+                      <div
+                        className="flex items-center gap-2 text-xs cursor-pointer"
+                        onClick={() => setSelectedPersona(persona.personaId)}
+                      >
                         <Badge variant="outline" className="capitalize">
                           {persona.decision.replace("_", " ")}
                         </Badge>
@@ -365,7 +387,10 @@ export function PersonaListPanel() {
                       </div>
 
                       {/* Reasoning Preview */}
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                      <p
+                        className="text-xs text-muted-foreground mt-2 line-clamp-2 cursor-pointer"
+                        onClick={() => setSelectedPersona(persona.personaId)}
+                      >
                         {persona.reasoning}
                       </p>
                     </CardContent>
@@ -376,6 +401,9 @@ export function PersonaListPanel() {
           </AnimatePresence>
         </div>
       </ScrollArea>
+
+      {/* Phone Interview Modal */}
+      <PhoneInterviewModal />
     </div>
   );
 }

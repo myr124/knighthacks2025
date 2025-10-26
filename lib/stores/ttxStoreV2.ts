@@ -13,6 +13,7 @@ interface TTXStoreV2 {
   aiSummaries: Map<number, string>;
   selectedPersonaId: string | null;
   selectedEvent: Inject | EOCAction | null;
+  interviewPersonaId: string | null;
 
   // Actions
   setScenario: (scenario: ScenarioResults) => void;
@@ -23,6 +24,7 @@ interface TTXStoreV2 {
   getPersonaHistory: (personaId: string) => PersonaResponse[];
   setSelectedPersona: (personaId: string | null) => void;
   setSelectedEvent: (event: Inject | EOCAction | null) => void;
+  setInterviewPersona: (personaId: string | null) => void;
   initializeScenario: () => Promise<void>;
   generateSummaryForPeriod: (periodNumber: number) => Promise<void>;
 }
@@ -361,6 +363,7 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
     aiSummaries: new Map<number, string>(),
     selectedPersonaId: null,
     selectedEvent: null,
+    interviewPersonaId: null,
 
     setScenario: (scenario) => set({ scenario }),
 
@@ -438,6 +441,8 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
     setSelectedPersona: (personaId: string | null) => set({ selectedPersonaId: personaId }),
 
     setSelectedEvent: (event: Inject | EOCAction | null) => set({ selectedEvent: event }),
+
+    setInterviewPersona: (personaId: string | null) => set({ interviewPersonaId: personaId }),
 
     initializeScenario: async () => {
       // First, check if we have ADK data from localStorage
