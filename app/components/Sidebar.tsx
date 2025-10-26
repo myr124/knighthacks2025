@@ -4,12 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit2 } from "lucide-react";
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  selectedPlan: any;
+  setSelectedPlan: (plan: any) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
   // No dialog state needed; we navigate to the editor to load saved sessions
 
 
   const [planTitles, setPlanTitles] = useState<string[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -46,12 +50,22 @@ const Sidebar: React.FC = () => {
           <div className="text-xs text-gray-500 mt-4">No saved sessions yet.</div>
         ) : (
           planTitles.map(title => {
-            const isSelected = selectedPlan === title;
+            const isSelected = selectedPlan && selectedPlan.title === title;
             return (
               <Card
                 key={title}
                 className={`bg-transparent border transition mb-2 ${isSelected ? 'border-green-500' : 'border-gray-700'} cursor-pointer`}
-                onClick={() => setSelectedPlan(selectedPlan === title ? null : title)}
+                onClick={() => {
+                  if (selectedPlan && selectedPlan.title === title) {
+                    setSelectedPlan(null);
+                  } else {
+                    // Load plan data from sessionStorage
+                    import('@/lib/utils/browserStorage').then(mod => {
+                      const plan = mod.loadPlanByKey(title);
+                      setSelectedPlan({ ...plan, title });
+                    });
+                  }
+                }}
               >
                 <CardContent className="p-4 flex items-center justify-between">
                   <span
@@ -65,7 +79,6 @@ const Sidebar: React.FC = () => {
                     title="Edit session"
                     onClick={e => {
                       e.stopPropagation();
-                      setSelectedPlan(title);
                       window.location.href = `/editor?plan=${encodeURIComponent(title)}&edit=true`;
                     }}
                   >
