@@ -1,5 +1,5 @@
 // Simple browser storage helpers for emergency plan JSON
-// Stores the latest plan in localStorage under a fixed key.
+// Stores plans in localStorage for persistence across browser sessions.
 
 import type { EmergencyPlan } from '@/lib/utils/emergencyPlan';
 
@@ -10,7 +10,7 @@ export function saveLatestEmergencyPlan(plan: EmergencyPlan): void {
   if (typeof window === 'undefined') return;
   try {
     const serialized = JSON.stringify(plan);
-    window.sessionStorage.setItem(KEY, serialized);
+    window.localStorage.setItem(KEY, serialized);
   } catch (e) {
     // Swallow storage errors to avoid blocking UX; caller can still proceed
     console.error('Failed to save plan to localStorage:', e);
@@ -20,7 +20,7 @@ export function saveLatestEmergencyPlan(plan: EmergencyPlan): void {
 export function loadLatestEmergencyPlan(): EmergencyPlan | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.sessionStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(KEY);
     if (!raw) return null;
     return JSON.parse(raw) as EmergencyPlan;
   } catch (e) {
@@ -34,7 +34,8 @@ export function savePlanByKey(key: string, plan: EmergencyPlan): void {
   if (typeof window === 'undefined') return;
   try {
     const serialized = JSON.stringify(plan);
-    window.sessionStorage.setItem(NAMESPACE + key, serialized);
+    window.localStorage.setItem(NAMESPACE + key, serialized);
+    console.log('✅ Saved plan with key:', NAMESPACE + key);
   } catch (e) {
     console.error('Failed to save named plan to storage:', e);
   }
@@ -43,7 +44,7 @@ export function savePlanByKey(key: string, plan: EmergencyPlan): void {
 export function loadPlanByKey(key: string): EmergencyPlan | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.sessionStorage.getItem(NAMESPACE + key);
+    const raw = window.localStorage.getItem(NAMESPACE + key);
     if (!raw) return null;
     return JSON.parse(raw) as EmergencyPlan;
   } catch (e) {
@@ -55,9 +56,12 @@ export function loadPlanByKey(key: string): EmergencyPlan | null {
 export function listSavedPlanKeys(): string[] {
   if (typeof window === 'undefined') return [];
   const keys: string[] = [];
-  for (let i = 0; i < window.sessionStorage.length; i++) {
-    const k = window.sessionStorage.key(i);
-    if (k && k.startsWith(NAMESPACE)) keys.push(k.substring(NAMESPACE.length));
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const k = window.localStorage.key(i);
+    if (k && k.startsWith(NAMESPACE)) {
+      keys.push(k.substring(NAMESPACE.length));
+    }
   }
+  console.log('📋 Listed saved plan keys:', keys);
   return keys;
 }

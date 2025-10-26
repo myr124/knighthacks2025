@@ -87,11 +87,22 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
   const handleSaveAndExit = () => {
     try {
       const plan = toEmergencyPlan(localScript as any);
-      const key = getSaveKey?.()?.trim();
-      if (key) {
-        savePlanByKey(key, plan);
+      let key = getSaveKey?.()?.trim();
+
+      // Auto-generate key if not provided
+      if (!key) {
+        const timestamp = new Date().toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+        key = `${script.scenarioType} - ${timestamp}`;
       }
+
+      savePlanByKey(key, plan);
       saveLatestEmergencyPlan(plan);
+      console.log('💾 Saved plan with key:', key);
     } catch (e) {
       console.error('Failed to persist plan to browser storage:', e);
     }

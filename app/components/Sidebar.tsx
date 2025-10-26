@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,18 +11,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ChevronLeft, Plus, Edit2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { ScenarioConfigForm } from "./ScenarioConfigForm"
-import { TTXScriptReviewPanel } from "./TTXScriptReviewPanel"
-import type { ScenarioConfig, Inject, EOCAction, OperationalPeriod } from '@/lib/utils/ttxGenerator';
-import { ConfigDialog } from "./ConfigDialog"
 
 interface SidebarProps {
   selectedPlan: any;
@@ -29,18 +18,37 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // No dialog state needed; we navigate to the editor to load saved sessions
-
-
+  const router = useRouter();
+  const pathname = usePathname();
   const [planTitles, setPlanTitles] = useState<string[]>([]);
 
-  useEffect(() => {
+  const loadPlanTitles = () => {
     if (typeof window !== 'undefined') {
       import('@/lib/utils/browserStorage').then(mod => {
-        setPlanTitles(mod.listSavedPlanKeys());
+        const keys = mod.listSavedPlanKeys();
+        setPlanTitles(keys);
       });
     }
+  };
+
+  useEffect(() => {
+    // Load whenever pathname changes (e.g., navigating back from /editor)
+    loadPlanTitles();
+  }, [pathname]);
+
+  useEffect(() => {
+    // Listen for storage events from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key?.startsWith('emergencyPlan:') || e.key === null) {
+        loadPlanTitles();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   return (
@@ -55,20 +63,14 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
       <div className="px-5 py-2 space-y-6">
         {/* Create Session */}
         <div className="mb-4">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-                <Button
-                variant="outline"
-                className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
-                >
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Session
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] w-[95vw] sm:w-[90vw] bg-gray-900 border-gray-700 overflow-y-auto">
-              <ConfigDialog />
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="outline"
+            className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
+            onClick={() => router.push('/editor')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Session
+          </Button>
         </div>
 
         {/* Saved Sessions List */}
