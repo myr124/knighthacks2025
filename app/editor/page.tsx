@@ -19,6 +19,40 @@ export default function EditorPage() {
   const [initialScript, setInitialScript] = useState<TTXScript | null>(null);
 
   useEffect(() => {
+    // Create a fresh skeleton when navigating with ?new=true
+    const isNew = search.get("new");
+    if (isNew) {
+      (async () => {
+        try {
+          const now = new Date();
+          const defaultTitle = `New Plan ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          setTitle(defaultTitle);
+          const defaultConfig = {
+            scenarioType: "hurricane",
+            location: "",
+            severity: "minor",
+            time: 1,
+            population: 0,
+            agents: 0,
+          } as const;
+          const res = await fetch('/api/ttx/skeleton', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(defaultConfig),
+          });
+          if (res.ok) {
+            const script = (await res.json()) as TTXScript;
+            setInitialScript(script);
+          } else {
+            console.error('Failed to generate new skeleton');
+          }
+        } catch (e) {
+          console.error('Error generating new skeleton:', e);
+        }
+      })();
+      return; // Skip loading existing plans when creating new
+    }
+
     const planKey = search.get("plan");
     if (!planKey) return;
     const plan =

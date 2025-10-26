@@ -22,7 +22,7 @@ import { EditInjectDialog } from './EditInjectDialog';
 import { EditActionDialog } from './EditActionDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toEmergencyPlan } from '@/lib/utils/emergencyPlan';
-import { saveLatestEmergencyPlan, savePlanByKey } from '@/lib/utils/browserStorage';
+import { saveLatestEmergencyPlan, savePlanByKey, saveTTXSession, loadTTXSession, type TTXSession } from '@/lib/utils/browserStorage';
 
 interface TTXScriptReviewPanelProps {
   script: {
@@ -38,6 +38,9 @@ interface TTXScriptReviewPanelProps {
   onSubmit: () => void;
   isSubmitting?: boolean;
   getSaveKey?: () => string | undefined;
+  openPreviewTab?: () => void;
+  onPreviewReady?: (text: string) => void;
+  sessionId?: string; // TTX session ID for persisting edits
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -54,7 +57,7 @@ const PHASE_COLORS: Record<string, string> = {
   recovery: 'bg-green-500'
 };
 
-export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, getSaveKey }: TTXScriptReviewPanelProps) {
+export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, getSaveKey, openPreviewTab, onPreviewReady, sessionId }: TTXScriptReviewPanelProps) {
   const [editingInject, setEditingInject] = useState<Inject | null>(null);
   const [editingInjectInfo, setEditingInjectInfo] = useState<{ periodIdx: number; index: number } | null>(null);
   const [editingAction, setEditingAction] = useState<EOCAction | null>(null);
@@ -66,6 +69,62 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
   const [dragOverIdx, setDragOverIdx] = useState<{ periodIdx: number; injectIdx: number } | null>(null);
   const draggingInjectRef = useRef<{ periodIdx: number; index: number } | null>(null);
   const [isReorderingInject, setIsReorderingInject] = useState(false);
+  const [previewText, setPreviewText] = useState<string>('');
+  const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const previewBlockRef = useRef<HTMLDivElement | null>(null);
+  const previewTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Helper function to save script edits to TTX session
+  const saveEditToSession = (updatedScript: typeof localScript) => {
+    if (!sessionId) return; // No session to save to
+    try {
+      const session = loadTTXSession(sessionId);
+      if (session) {
+        const updatedSession: TTXSession = {
+          ...session,
+          script: updatedScript,
+          updatedAt: new Date().toISOString(),
+        };
+        saveTTXSession(sessionId, updatedSession);
+      }
+    } catch (e) {
+      console.error('Failed to save edit to session:', e);
+    }
+  };
+
+  const generatePreview = async (): Promise<string> => {
+    setIsPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const res = await fetch('/api/ttx/augment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ script: localScript }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `Failed with status ${res.status}`);
+      }
+      const data = await res.json();
+      if (data?.script) {
+        setLocalScript(data.script);
+      }
+      const text = data?.previewText || JSON.stringify(localScript, null, 2);
+      setPreviewText(text);
+      onPreviewReady?.(text);
+      return text;
+    } catch (e: any) {
+      setPreviewError(e?.message || 'Failed to generate preview');
+      onPreviewReady?.(previewText);
+      return previewText;
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
 
   const handleExport = () => {
     try {
@@ -85,6 +144,8 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
   };
 
   const handleSaveAndExit = () => {
+    setIsSaving(true);
+    setSaveError(null);
     try {
       const plan = toEmergencyPlan(localScript as any);
       const key = getSaveKey?.()?.trim();
@@ -92,10 +153,38 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
         savePlanByKey(key, plan);
       }
       saveLatestEmergencyPlan(plan);
-    } catch (e) {
+      setLastSavedAt(new Date());
+    } catch (e: any) {
       console.error('Failed to persist plan to browser storage:', e);
+      setSaveError(e?.message || 'Failed to save to browser storage');
+    } finally {
+      setIsSaving(false);
     }
-    onSubmit();
+    // onSubmit();
+  };
+
+  const handleGenerateFullScript = async () => {
+    // Save current JSON to session before generating text
+    try {
+      const plan = toEmergencyPlan(localScript as any);
+      const key = getSaveKey?.()?.trim();
+      if (key) {
+        savePlanByKey(key, plan);
+      }
+      saveLatestEmergencyPlan(plan);
+      setLastSavedAt(new Date());
+    } catch (e) {
+      console.error('Failed saving before preview generation:', e);
+    }
+
+    await generatePreview();
+    if (typeof openPreviewTab === 'function') {
+      openPreviewTab();
+    }
+    setTimeout(() => {
+      previewBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      previewTextareaRef.current?.focus();
+    }, 50);
   };
 
   // keep local copy in sync if parent updates
@@ -155,7 +244,9 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
     setLocalScript((prev) => {
       const periods = [...prev.periods];
       periods[periodIdx] = { ...periods[periodIdx], injects: [tmp, ...periods[periodIdx].injects] };
-      return { ...prev, periods };
+      const updated = { ...prev, periods };
+      saveEditToSession(updated);
+      return updated;
     });
   };
   // Reorder helpers for injects
@@ -168,7 +259,9 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
       const insertAt = fromIndex < toIndex ? toIndex - 1 : toIndex;
       injects.splice(insertAt, 0, moved);
       periods[periodIdx] = { ...periods[periodIdx], injects };
-      return { ...prev, periods };
+      const updated = { ...prev, periods };
+      saveEditToSession(updated);
+      return updated;
     });
   };
 
@@ -196,7 +289,9 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
     setLocalScript((prev) => {
       const periods = [...prev.periods];
       periods[periodIdx] = { ...periods[periodIdx], eocActions: [tmp, ...periods[periodIdx].eocActions] };
-      return { ...prev, periods };
+      const updated = { ...prev, periods };
+      saveEditToSession(updated);
+      return updated;
     });
   };
   const deleteInject = (periodIdx: number, index: number) => {
@@ -205,7 +300,9 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
       const injects = [...periods[periodIdx].injects];
       injects.splice(index, 1);
       periods[periodIdx] = { ...periods[periodIdx], injects };
-      return { ...prev, periods };
+      const updated = { ...prev, periods };
+      saveEditToSession(updated);
+      return updated;
     });
   };
   const deleteAction = (periodIdx: number, index: number) => {
@@ -214,7 +311,9 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
       const actions = [...periods[periodIdx].eocActions];
       actions.splice(index, 1);
       periods[periodIdx] = { ...periods[periodIdx], eocActions: actions };
-      return { ...prev, periods };
+      const updated = { ...prev, periods };
+      saveEditToSession(updated);
+      return updated;
     });
   };
 
@@ -346,7 +445,7 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-3 flex-1">
                       <Badge className={`${PHASE_COLORS[period.phase]} text-white dark:bg-zinc-800 dark:text-white`}>
-                        {`t-${period.startTime ?? idx * 12}`}
+                        {tabLabels[idx]}
                       </Badge>
                       {/* <span className="font-medium dark:text-zinc-200">{period.label}</span> */}
                       <Badge variant="outline" className="capitalize dark:border-zinc-700 dark:text-zinc-300">{period.phase}</Badge>
@@ -483,27 +582,57 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
             </Accordion>
           </div>
 
+          {/* Text Preview (Editable) */}
+  
+
           {/* Save & Exit */}
-          <div className="mt-6 pt-6 border-t dark:border-zinc-800">
+          <div className="mt-6 pt-6 border-t dark:border-zinc-800 flex gap-2">
             <Button
               onClick={handleSaveAndExit}
               className="w-full dark:bg-zinc-800 dark:text-white"
+              size="lg"
+              disabled={isSubmitting || isSaving}
+            >
+              {isSubmitting || isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isSubmitting ? 'Saving' : 'Saving to Browser'}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {lastSavedAt ? 'Saved' : 'Save Script'}
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleGenerateFullScript}
+              className="w-full dark:bg-indigo-800 dark:text-white bg-indigo-700"
               size="lg"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting to Backend...
+                  Creating Your Script...
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Save Script & Exit
+                  Generate Full Script
                 </>
               )}
             </Button>
           </div>
+          {(lastSavedAt || saveError) && (
+            <div className="mt-2 text-xs text-muted-foreground dark:text-zinc-400" aria-live="polite">
+              {saveError ? (
+                <span className="text-red-500">{saveError}</span>
+              ) : (
+                <span>Saved to session at {lastSavedAt?.toLocaleTimeString()}</span>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
       </motion.div>
@@ -521,7 +650,10 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
               injects[editingInjectInfo.index] = { ...injects[editingInjectInfo.index], ...updated } as Inject;
               injects.sort((a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time));
               periods[editingInjectInfo.periodIdx] = { ...periods[editingInjectInfo.periodIdx], injects };
-              return { ...prev, periods };
+              const updatedScript = { ...prev, periods };
+              // Save edit to session
+              saveEditToSession(updatedScript);
+              return updatedScript;
             });
           }
           setEditingInject(null);
@@ -535,11 +667,12 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
         value={editingAction}
         onOpenChange={(open) => { if (!open) setEditingAction(null); }}
         onSave={(updated) => {
-          // For now, simply close; updating actions in state can be implemented similar to injects
           // Find and replace the action in the local script
           setLocalScript((prev) => {
             const periods = prev.periods.map((p) => ({ ...p, eocActions: p.eocActions.map((a) => a.id === updated.id ? { ...a, ...updated } : a) }));
-            return { ...prev, periods };
+            const updatedScript = { ...prev, periods };
+            saveEditToSession(updatedScript);
+            return updatedScript;
           });
           setEditingAction(null);
         }}

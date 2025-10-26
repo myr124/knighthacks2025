@@ -164,6 +164,7 @@ export function ScenarioConfigForm({
             <Label htmlFor="time" className="text-gray-300">
               Duration (Days)
             </Label>
+                        // ...existing code...
             <Input
               id="time"
               type="number"
@@ -171,22 +172,32 @@ export function ScenarioConfigForm({
               max={7}
               step={1}
               placeholder="e.g., 3"
-              value={config.time}
-              onChange={(e) =>
-                setConfig({
-                  ...config,
-                  time: Math.max(1, Math.min(7, parseInt(e.target.value) || 1)),
-                })
-              }
+              value={config.time === 0 ? "" : config.time}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty string for editing
+                if (value === "") {
+                  setConfig({ ...config, time: 0 });
+                  return;
+                }
+                const n = Number(value);
+                setConfig({ ...config, time: n });
+              }}
+              onBlur={() => {
+                // Clamp on blur
+                const clamped = Math.max(1, Math.min(7, config.time));
+                setConfig({ ...config, time: clamped });
+              }}
               required
               className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
             />
+            // ...existing code...
             <p className="text-xs text-gray-400">
               Enter the duration of the scenario (1-7 days)
             </p>
           </div>
 
-          {/* Submit Button */}
+          {/* Save Button */}
           <Button
             type="submit"
             className="w-full bg-indigo-700 hover:bg-indigo-800 text-white border-none"

@@ -368,14 +368,14 @@ function generateMockDemographics(personaType: string) {
   return baseDemo;
 }
 
-function generateMockDecision(personaType: string, periodIndex: number): string {
+function generateMockDecision(personaType: string, periodIndex: number): 'stay_home' | 'evacuate' | 'shelter_in_place' | 'help_neighbors' | 'gather_info' | 'wait_and_see' {
   if (periodIndex < 3) return 'stay_home';
   if (periodIndex < 6) return personaType === 'The Skeptic' ? 'wait_and_see' : 'gather_info';
   if (periodIndex < 9) return personaType === 'The Planner' ? 'evacuate' : 'stay_home';
   return 'shelter_in_place';
 }
 
-function generateMockSentiment(periodIndex: number): string {
+function generateMockSentiment(periodIndex: number): 'calm' | 'concerned' | 'anxious' | 'panicked' | 'skeptical' | 'defiant' {
   if (periodIndex < 3) return 'calm';
   if (periodIndex < 6) return 'concerned';
   if (periodIndex < 9) return 'anxious';
