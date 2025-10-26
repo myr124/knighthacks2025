@@ -163,7 +163,8 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, g
     } finally {
       setIsSaving(false);
     }
-    // onSubmit();
+    // Close editor (parent handles persisting previewText and navigation)
+    onSubmit();
   };
 
   const handleGenerateFullScript = async () => {

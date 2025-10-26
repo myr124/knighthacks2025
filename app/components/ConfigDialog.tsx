@@ -132,8 +132,21 @@ export function ConfigDialog({
   };
 
   const handleSubmit = () => {
-    // After Save Script & Exit is clicked inside the review panel,
-    // navigate back to home page
+    // Ensure the latest previewText + script + config are persisted to the web session
+    if (script && currentConfig) {
+      const existing = loadTTXSession(sessionId);
+      const now = new Date().toISOString();
+      const session: TTXSession = {
+        id: sessionId,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+        config: currentConfig,
+        script,
+        previewText,
+      };
+      saveTTXSession(sessionId, session);
+    }
+    // Close the editor
     router.push("/");
   };
 
@@ -286,25 +299,12 @@ export function ConfigDialog({
                       <Button
                         size="sm"
                         variant="default"
-                        onClick={() => {
-                          if (script && currentConfig) {
-                            const session: TTXSession = {
-                              id: sessionId,
-                              createdAt: new Date().toISOString(),
-                              updatedAt: new Date().toISOString(),
-                              config: currentConfig,
-                              script,
-                              previewText,
-                            };
-                            saveTTXSession(sessionId, session);
-                            // alert(` Session saved with ID: ${sessionId}`);
-                          }
-                        }}
+                        onClick={handleSubmit}
                         className="gap-2"
                         disabled={isLoadingPreview || !previewText}
                       >
                         <Save className="h-4 w-4 text-zinc-400" />
-                        Save Session
+                        Save Script
                       </Button>
                     </div>
                   </div>
