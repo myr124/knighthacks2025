@@ -21,6 +21,8 @@ import { ActionCard } from './ActionCard';
 import { EditInjectDialog } from './EditInjectDialog';
 import { EditActionDialog } from './EditActionDialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toEmergencyPlan } from '@/lib/utils/emergencyPlan';
+import { saveLatestEmergencyPlan, savePlanByKey } from '@/lib/utils/browserStorage';
 
 interface TTXScriptReviewPanelProps {
   script: {
@@ -35,6 +37,7 @@ interface TTXScriptReviewPanelProps {
   };
   onSubmit: () => void;
   isSubmitting?: boolean;
+  getSaveKey?: () => string | undefined;
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -51,7 +54,7 @@ const PHASE_COLORS: Record<string, string> = {
   recovery: 'bg-green-500'
 };
 
-export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }: TTXScriptReviewPanelProps) {
+export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false, getSaveKey }: TTXScriptReviewPanelProps) {
   const [editingInject, setEditingInject] = useState<Inject | null>(null);
   const [editingInjectInfo, setEditingInjectInfo] = useState<{ periodIdx: number; index: number } | null>(null);
   const [editingAction, setEditingAction] = useState<EOCAction | null>(null);
@@ -63,6 +66,37 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
   const [dragOverIdx, setDragOverIdx] = useState<{ periodIdx: number; injectIdx: number } | null>(null);
   const draggingInjectRef = useRef<{ periodIdx: number; index: number } | null>(null);
   const [isReorderingInject, setIsReorderingInject] = useState(false);
+
+  const handleExport = () => {
+    try {
+      const plan = toEmergencyPlan(localScript as any);
+      const blob = new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'emergency_plan.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to export plan JSON:', e);
+    }
+  };
+
+  const handleSaveAndExit = () => {
+    try {
+      const plan = toEmergencyPlan(localScript as any);
+      const key = getSaveKey?.()?.trim();
+      if (key) {
+        savePlanByKey(key, plan);
+      }
+      saveLatestEmergencyPlan(plan);
+    } catch (e) {
+      console.error('Failed to persist plan to browser storage:', e);
+    }
+    onSubmit();
+  };
 
   // keep local copy in sync if parent updates
   useEffect(() => {
@@ -214,11 +248,11 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
           <div className="flex flex-col gap-2">
             <motion.button
               draggable
-              onDragStart={(e) => {
+              onDragStartCapture={(e: React.DragEvent) => {
                 setDraggingType('inject');
                 e.dataTransfer.setData('text/plain', 'inject');
               }}
-              onDragEnd={() => setDraggingType(null)}
+              onDragEndCapture={() => setDraggingType(null)}
               className="group relative px-3 py-2.5 rounded-lg text-xs font-semibold bg-linear-to-br from-cyan-900/50 to-cyan-900/30 text-cyan-200 border border-cyan-600/60 hover:from-cyan-800/60 hover:to-cyan-800/40 hover:border-cyan-500 transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-cyan-900/30"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
@@ -232,11 +266,11 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
             </motion.button>
             <motion.button
               draggable
-              onDragStart={(e) => {
+              onDragStartCapture={(e: React.DragEvent) => {
                 setDraggingType('action');
                 e.dataTransfer.setData('text/plain', 'action');
               }}
-              onDragEnd={() => setDraggingType(null)}
+              onDragEndCapture={() => setDraggingType(null)}
               className="group relative px-3 py-2.5 rounded-lg text-xs font-semibold bg-linear-to-br from-emerald-900/50 to-emerald-900/30 text-emerald-200 border border-emerald-600/60 hover:from-emerald-800/60 hover:to-emerald-800/40 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-emerald-900/30"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
@@ -312,9 +346,9 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-3 flex-1">
                       <Badge className={`${PHASE_COLORS[period.phase]} text-white dark:bg-zinc-800 dark:text-white`}>
-                        OP {period.periodNumber}
+                        {`t-${period.startTime ?? idx * 12}`}
                       </Badge>
-                      <span className="font-medium dark:text-zinc-200">{period.label}</span>
+                      {/* <span className="font-medium dark:text-zinc-200">{period.label}</span> */}
                       <Badge variant="outline" className="capitalize dark:border-zinc-700 dark:text-zinc-300">{period.phase}</Badge>
                       <div className="flex items-center gap-2 ml-auto mr-2">
                         <Badge variant="secondary" className="dark:bg-zinc-800 dark:text-zinc-300">{period.injects.length} injects</Badge>
@@ -449,10 +483,10 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
             </Accordion>
           </div>
 
-          {/* Submit Button */}
+          {/* Save & Exit */}
           <div className="mt-6 pt-6 border-t dark:border-zinc-800">
             <Button
-              onClick={onSubmit}
+              onClick={handleSaveAndExit}
               className="w-full dark:bg-zinc-800 dark:text-white"
               size="lg"
               disabled={isSubmitting}

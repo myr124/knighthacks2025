@@ -1,21 +1,5 @@
-'use client';
-
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertTriangle, CheckCircle, Clock, Edit2, Loader2, MapPin, Send, Users } from 'lucide-react';
-import type { OperationalPeriod, Inject, EOCAction } from '@/lib/types/ttx';
+// This file has been removed as part of the cleanup process.
+import { saveLatestEmergencyPlan } from '@/lib/utils/browserStorage';
 
 interface TTXScriptReviewPanelProps {
   script: {
@@ -49,6 +33,33 @@ const PHASE_COLORS: Record<string, string> = {
 export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }: TTXScriptReviewPanelProps) {
   const [editingInject, setEditingInject] = useState<Inject | null>(null);
   const [editingAction, setEditingAction] = useState<EOCAction | null>(null);
+
+  const handleSaveAndSubmit = () => {
+    try {
+      const plan = toEmergencyPlan(script as any);
+      saveLatestEmergencyPlan(plan);
+    } catch (e) {
+      console.error('Failed to persist plan to browser storage:', e);
+    }
+    onSubmit();
+  };
+
+  const handleExport = () => {
+    try {
+      const plan = toEmergencyPlan(script as any);
+      const blob = new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'emergency_plan.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to export plan JSON:', e);
+    }
+  };
 
   const handleEditInject = (inject: Inject) => {
     setEditingInject({ ...inject });
@@ -111,9 +122,12 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-3 flex-1">
                       <Badge className={`${PHASE_COLORS[period.phase]} text-white`}>
-                        OP {period.periodNumber}
+                        {(period as any).startTime}
                       </Badge>
-                      <span className="font-medium">{period.label}</span>
+                      {/* <span className="font-medium">{period.label}</span>
+                      {((period as any).startTime || (period as any).endTime) && (
+                        <span className="text-xs text-muted-foreground">{(period as any).startTime || ''} {(period as any).endTime ? `→ ${(period as any).endTime}` : ''}</span>
+                      )} */}
                       <Badge variant="outline" className="capitalize">{period.phase}</Badge>
                       <div className="flex items-center gap-2 ml-auto mr-2">
                         <Badge variant="secondary">{period.injects.length} injects</Badge>
@@ -222,26 +236,28 @@ export function TTXScriptReviewPanel({ script, onSubmit, isSubmitting = false }:
             </Accordion>
           </ScrollArea>
 
-          {/* Submit Button */}
-          <div className="mt-6 pt-6 border-t">
-            <Button
-              onClick={onSubmit}
-              className="w-full"
-              size="lg"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting to Backend...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit to Backend & Generate Simulation
-                </>
-              )}
-            </Button>
+          {/* Export & Submit Buttons */}
+          <div className="mt-6 pt-6 border-t flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSaveAndSubmit}
+                className="w-full"
+                size="lg"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting to Backend...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Submit to Backend & Generate Simulation
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

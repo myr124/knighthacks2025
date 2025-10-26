@@ -2,6 +2,7 @@ export interface ScenarioConfig {
   scenarioType: 'hurricane' | 'epidemic' | 'wildfire' | 'flood' | 'earthquake';
   location: string;
   severity: 'minor' | 'moderate' | 'major' | 'severe' | 'catastrophic';
+  time: number;
   population: number;
   agents: number;
 }
