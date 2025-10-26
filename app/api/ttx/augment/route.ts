@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { TTXScript } from "@/lib/utils/ttxGenerator";
 
 // Initialize the Google Generative AI client
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 async function generateFacilitatorScript(script: TTXScript): Promise<string> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
