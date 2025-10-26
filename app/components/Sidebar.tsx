@@ -20,8 +20,6 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
-  
-
   return (
     <aside className="h-screen w-72 bg-black text-white flex flex-col border-r border-gray-800">
       {/* Top brand / breadcrumb */}
@@ -52,23 +50,21 @@ const Sidebar: React.FC = () => {
             return (
               <Card
                 key={title}
-                className={`bg-transparent border transition mb-2 ${isSelected ? 'border-green-500' : 'border-gray-700'}`}
+                className={`bg-transparent border transition mb-2 ${isSelected ? 'border-green-500' : 'border-gray-700'} cursor-pointer`}
+                onClick={() => setSelectedPlan(selectedPlan === title ? null : title)}
               >
                 <CardContent className="p-4 flex items-center justify-between">
                   <span
-                    className="flex-1 text-left cursor-pointer hover:underline"
+                    className="flex-1 text-left cursor-default"
                     style={{ display: 'block' }}
-                    onClick={() => {
-                      setSelectedPlan(title);
-                      window.location.href = `/editor?plan=${encodeURIComponent(title)}`;
-                    }}
                   >
                     <span className="text-[11px] uppercase tracking-wide text-gray-400 mb-2 block">{title}</span>
                   </span>
                   <button
                     className="ml-2 p-1 rounded hover:bg-gray-800"
                     title="Edit session"
-                    onClick={() => {
+                    onClick={e => {
+                      e.stopPropagation();
                       setSelectedPlan(title);
                       window.location.href = `/editor?plan=${encodeURIComponent(title)}&edit=true`;
                     }}
