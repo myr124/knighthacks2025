@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, Plus, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   // No dialog state needed; we navigate to the editor to load saved sessions
 
 
@@ -36,7 +37,6 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Dynamically import to avoid SSR issues
       import('@/lib/utils/browserStorage').then(mod => {
         setPlanTitles(mod.listSavedPlanKeys());
       });
