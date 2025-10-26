@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Emergent: AI-Powered Crisis Simulation Platform
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Emergent is a web-based, AI-powered Tabletop Exercise (TTX) platform that allows emergency managers to simulate disaster scenarios and their impact on a community. It provides a safe, controlled, and highly detailed environment to practice, test, and refine emergency plans, with a focus on improving communication with vulnerable populations.
+
+## The Problem
+
+In a crisis, effective communication can save lives. However, testing communication strategies, especially for reaching diverse and vulnerable communities, is incredibly challenging. Traditional tabletop exercises are often static and resource-intensive. Emergent aims to solve this by providing a dynamic, AI-driven simulation environment that models complex human behaviors and communication patterns.
+
+## Key Features
+
+- **AI-Powered Scenario Generation:** Use Google's Gemini model to dynamically generate realistic disaster scenarios and narrative injects.
+- **Interactive Simulation:** Run exercises on an interactive GIS map, with events unfolding over a structured timeline.
+- **Persona-Based Modeling:** Simulate a diverse community with unique "personas" that react differently to events based on their demographics and roles using Google Gemini's ADK and Parallel Agents
+- **AI Chat Interaction:** Engage with an Gemini AI-powered chatbot to get situational updates and test communication strategies by seeing how personas react.
+- **Comprehensive After-Action Reporting:** Generate detailed reports after each simulation, including an executive summary, deep-dive analytics, and an interactive timeline replay.
+- **Modern, Intuitive Interface:** A clean and responsive UI built with Next.js, Tailwind CSS, and shadcn/ui.
+
+## Technology Stack
+
+- **Framework:** [Next.js](https://nextjs.org/) 14+
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **AI:** [Google Gemini](https://ai.google.dev/) via `@google/generative-ai`
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) with [shadcn/ui](https://ui.shadcn.com/)
+- **Mapping:** [React Leaflet](https://react-leaflet.js.org/)
+- **3D Visualization:** [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) & [Drei](https://github.com/pmndrs/drei)
 
 ## Getting Started
 
-First, run the development server:
+Follow these instructions to get a local copy of the project up and running for development and testing.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Prerequisites
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Node.js (v20.x or later recommended)
+- npm or yarn
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Clone the repository:**
 
-## Learn More
+    ```sh
+    git clone https://github.com/your-username/your-repository-name.git
+    cd your-repository-name
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Install dependencies:**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    ```sh
+    npm install
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3.  **Set up environment variables:**
 
-## Deploy on Vercel
+    This project requires an API key for the Google Gemini AI service.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    Create a file named `.env.local` in the root of the project and add your API key:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    ```
+    GOOGLE_API_KEY="YOUR_API_KEY_HERE"
+    ```
+
+4.  **Run the development server:**
+
+    ```sh
+    npm run dev
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Other Scripts
+
+- **Build for production:**
+
+  ```sh
+  npm run build
+  ```
+
+- **Run production server:**
+
+  ```sh
+  npm run start
+  ```
+
+- **Run linter:**
+  ```sh
+  npm run lint
+  ```
+
+## Project Structure
+
+The codebase is organized to keep a clean separation of concerns.
+
+- `app/`: Contains the core application logic, pages, and API routes, following the Next.js App Router structure.
+  - `app/api/`: Backend API endpoints for AI generation, chat, etc.
+  - `app/components/`: The majority of the React components that make up the UI.
+  - `app/(pages)/`: Different top-level pages like `/editor`, `/simulation-v2`, etc.
+- `components/ui/`: Core UI components from shadcn/ui.
+- `lib/`: Contains utility functions, type definitions, and state management stores.
+  - `lib/stores/`: State management logic (e.g., Zustand stores).
+  - `lib/types/`: TypeScript type definitions for data structures like scenarios and personas.
+- `public/`: Static assets like images and icons.
+
+## Contributing
+
+Contributions are welcome! If you have a suggestion or find a bug, please open an issue to discuss it.
+
+_(You can add more detailed contribution guidelines here if you wish.)_
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
