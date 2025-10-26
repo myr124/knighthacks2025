@@ -112,11 +112,14 @@ export default function Globe({ targetLocation }: GlobeProps) {
   return (
     <div className="w-full h-full">
       <Canvas camera={{ position: [0, 0, 300], fov: 45 }}>
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[5, 3, 5]} intensity={1.5} />
-        <pointLight position={[10, 0, 0]} intensity={0.8} />
-        <pointLight position={[-10, 0, 0]} intensity={0.8} />
-        <pointLight position={[0, 0, -10]} intensity={0.5} />
+        <ambientLight intensity={2.0} />
+        <directionalLight position={[5, 3, 5]} intensity={2.5} />
+        <directionalLight position={[-5, -3, -5]} intensity={1.0} />
+        <pointLight position={[10, 0, 0]} intensity={1.2} />
+        <pointLight position={[-10, 0, 0]} intensity={1.2} />
+        <pointLight position={[0, 10, 0]} intensity={0.8} />
+        <pointLight position={[0, -10, 0]} intensity={0.8} />
+        <pointLight position={[0, 0, -10]} intensity={1.0} />
         <Earth targetLocation={targetLocation} isRotating={true} />
         <OrbitControls
           enableZoom={false}

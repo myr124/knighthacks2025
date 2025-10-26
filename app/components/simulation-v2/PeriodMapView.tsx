@@ -193,11 +193,11 @@ export function PeriodMapView() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative z-0">
       <MapContainer
         center={[25.7617, -80.1918]}
         zoom={11}
-        className="w-full h-full"
+        className="w-full h-full z-0"
         zoomControl={true}
       >
 
@@ -227,7 +227,7 @@ export function PeriodMapView() {
       </MapContainer>
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border text-xs z-[1000]">
+      <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border text-xs z-[400]">
         <div className="font-semibold mb-2">Persona Status</div>
         {Object.entries(LOCATION_COLORS).map(([status, color]) => {
           const count = locationCounts[status as PersonaResponse['location']] || 0;
@@ -236,7 +236,7 @@ export function PeriodMapView() {
           return (
             <div key={status} className="flex items-center gap-2 mb-1">
               <div
-                className="w-3 h-3 rounded-full border-2 border-white shadow-sm"
+                className="w-3 h-3 rounded-full border-2 border-foreground shadow-sm"
                 style={{ backgroundColor: color }}
               />
               <span className="capitalize text-muted-foreground flex-1">

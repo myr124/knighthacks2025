@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useSimulationStore } from '@/lib/stores/simulationStore';
+import { useTheme } from 'next-themes';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icons in Next.js
@@ -50,23 +51,47 @@ function MapController() {
   return null;
 }
 
+// Component to handle theme-based tile layer switching
+function ThemeTileLayer() {
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use resolvedTheme to handle 'system' theme
+  const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark');
+
+  return (
+    <TileLayer
+      key={isDark ? 'dark' : 'light'}
+      attribution={isDark
+        ? '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }
+      url={isDark
+        ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      }
+    />
+  );
+}
+
 export function GISMapView() {
   const agents = useSimulationStore((state) => state.agents);
   const selectAgent = useSimulationStore((state) => state.selectAgent);
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative z-0">
       <MapContainer
         center={[25.7617, -80.1918]}
         zoom={11}
-        className="w-full h-full"
+        className="w-full h-full z-0"
         zoomControl={true}
       >
         <MapController />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <ThemeTileLayer />
 
         {/* Hurricane landfall marker */}
         <Marker position={[25.8, -80.2]}>
@@ -103,12 +128,12 @@ export function GISMapView() {
       </MapContainer>
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border text-xs z-[1000]">
+      <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border text-xs z-[400]">
         <div className="font-semibold mb-2">Agent Status</div>
         {Object.entries(AGENT_COLORS).map(([status, color]) => (
           <div key={status} className="flex items-center gap-2 mb-1">
             <div
-              className="w-3 h-3 rounded-full border-2 border-white shadow-sm"
+              className="w-3 h-3 rounded-full border-2 border-border shadow-sm"
               style={{ backgroundColor: color }}
             />
             <span className="capitalize text-muted-foreground">{status.replace('_', ' ')}</span>

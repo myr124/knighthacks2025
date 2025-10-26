@@ -148,23 +148,23 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.269 0 0 / 60%);
+  background: var(--muted);
   border-radius: 5px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.269 0 0 / 80%);
+  background: var(--muted-foreground);
   background-clip: padding-box;
 }
 
 /* Firefox scrollbar */
 * {
-  scrollbar-color: oklch(0.269 0 0 / 60%) transparent;
+  scrollbar-color: var(--muted) transparent;
   scrollbar-width: thin;
 }
 
 *:hover {
-  scrollbar-color: oklch(0.269 0 0 / 80%) transparent;
+  scrollbar-color: var(--muted-foreground) transparent;
 }

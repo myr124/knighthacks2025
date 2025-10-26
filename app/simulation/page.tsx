@@ -8,6 +8,7 @@ import { SituationalAwarenessPanel } from '@/app/components/simulation/Situation
 import { EventTickerFeed } from '@/app/components/simulation/EventTickerFeed';
 import { AgentInspectionPanel } from '@/app/components/simulation/AgentInspectionPanel';
 import { useSimulationStore } from '@/lib/stores/simulationStore';
+import { ThemeToggle } from '@/app/components/ThemeToggle';
 
 // Dynamically import the map to avoid SSR issues with Leaflet
 const GISMapView = dynamic(
@@ -33,7 +34,12 @@ export default function SimulationPage() {
   }, [isPlaying, tick, speed]);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden relative">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Timeline Controls - Top Bar */}
       <TimelineControls />
 

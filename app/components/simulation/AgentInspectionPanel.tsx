@@ -25,7 +25,7 @@ export function AgentInspectionPanel() {
   const statusConfig = STATUS_CONFIG[agent.status];
 
   return (
-    <div className="absolute top-0 right-0 w-96 h-full bg-background border-l shadow-xl z-[1000] flex flex-col">
+    <div className="absolute top-0 right-0 w-96 h-full bg-background border-l shadow-xl z-20 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">

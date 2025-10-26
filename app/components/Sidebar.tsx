@@ -1,8 +1,27 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit2 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { ChevronLeft, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { ScenarioConfigForm } from "./ScenarioConfigForm"
+import { TTXScriptReviewPanel } from "./TTXScriptReviewPanel"
+import type { ScenarioConfig, Inject, EOCAction, OperationalPeriod } from '@/lib/utils/ttxGenerator';
+import { ConfigDialog } from "./ConfigDialog"
 
 interface SidebarProps {
   selectedPlan: any;
@@ -27,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
   return (
     <aside className="h-screen w-72 bg-black text-white flex flex-col border-r border-gray-800">
       {/* Top brand / breadcrumb */}
+      <span className="px-5 py-6 text-2xl text-white">Emergent</span>
 
       <div className="px-5 pt-5 pb-3 flex items-center gap-2 text-sm text-gray-300">
         <span className="opacity-80">Generate Emergency Plan</span>
@@ -35,14 +55,20 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedPlan, setSelectedPlan }) => {
       <div className="px-5 py-2 space-y-6">
         {/* Create Session */}
         <div className="mb-4">
-          <Button
-            variant="outline"
-            className="w-full border-gray-800 bg-black hover:bg-linear-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
-            onClick={() => window.location.href = '/editor'}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Session
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+                <Button
+                variant="outline"
+                className="w-full border-gray-800 bg-black hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-900 hover:text-white transition-all duration-200"
+                >
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Session
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] w-[95vw] sm:w-[90vw] bg-gray-900 border-gray-700 overflow-y-auto">
+              <ConfigDialog />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Saved Sessions List */}

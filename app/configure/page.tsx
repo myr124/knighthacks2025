@@ -9,6 +9,7 @@ import { generateTTX, type ScenarioConfig, type OperationalPeriod } from '@/lib/
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/app/components/ThemeToggle';
 
 export default function ConfigurePage() {
   const router = useRouter();
@@ -149,19 +150,22 @@ export default function ConfigurePage() {
       {/* Header */}
       <div className="border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Configure Scenario</h1>
-              <p className="text-sm text-muted-foreground">
-                Set up a new disaster scenario for simulation
-              </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Home
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold">Configure Scenario</h1>
+                <p className="text-sm text-muted-foreground">
+                  Set up a new disaster scenario for simulation
+                </p>
+              </div>
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </div>
