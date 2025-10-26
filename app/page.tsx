@@ -37,7 +37,7 @@ export default function Home() {
       </div>
       <div className="flex-1 flex items-center justify-center relative">
         <Globe targetLocation={null} />
-        <ChatBox />
+        <ChatBox selectedPlan={selectedPlan} />
       </div>
       <div className="shrink-0">
         <MetricsPanel {...metrics} />

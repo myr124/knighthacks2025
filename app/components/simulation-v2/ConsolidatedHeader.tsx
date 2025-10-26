@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Home, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, RefreshCw, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
 import { AnimatedCounter } from "./AnimatedCounter";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const PHASE_COLORS = {
   planning: "bg-blue-500",
@@ -17,6 +18,7 @@ const PHASE_COLORS = {
 };
 
 export function ConsolidatedHeader() {
+  const router = useRouter();
   const scenario = useTTXStoreV2((state) => state.scenario);
   const currentPeriod = useTTXStoreV2((state) => state.currentPeriod);
   const nextPeriod = useTTXStoreV2((state) => state.nextPeriod);
@@ -25,6 +27,8 @@ export function ConsolidatedHeader() {
   const generateScenario = useTTXStoreV2((state) => state.generateScenario);
 
   if (!scenario) return null;
+
+  const isLastPeriod = currentPeriod === scenario.periodResults.length;
 
   const currentResult = scenario.periodResults[currentPeriod - 1];
   const op = currentResult.operationalPeriod;
@@ -137,6 +141,18 @@ export function ConsolidatedHeader() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Generate Report Button - Only on last period */}
+          {isLastPeriod && (
+            <Button
+              size="sm"
+              onClick={() => router.push("/final-report")}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+            >
+              <FileText className="h-3 w-3 mr-2" />
+              Generate Report
+            </Button>
+          )}
 
           {/* Re-run Button */}
           <Button

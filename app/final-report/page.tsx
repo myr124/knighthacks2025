@@ -1,0 +1,116 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ArrowLeft, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTTXStoreV2 } from "@/lib/stores/ttxStoreV2";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ExecutiveSummaryDashboard } from "@/app/components/final-report/ExecutiveSummaryDashboard";
+import { KeyInsightsSection } from "@/app/components/final-report/KeyInsightsSection";
+import { InteractiveTimelineReplay } from "@/app/components/final-report/InteractiveTimelineReplay";
+import { DeepDiveAnalytics } from "@/app/components/final-report/DeepDiveAnalytics";
+import { ThemeToggle } from "@/app/components/ThemeToggle";
+
+export default function FinalReportPage() {
+  const router = useRouter();
+  const scenario = useTTXStoreV2((state) => state.scenario);
+
+  if (!scenario) {
+    router.push("/simulation-v2");
+    return null;
+  }
+
+  const handleDownloadReport = () => {
+    // This will be implemented to download PDF/Word document
+    console.log("Downloading report...");
+    // TODO: Implement actual download functionality
+  };
+
+  return (
+    <motion.div
+      className="min-h-screen bg-background"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      {/* Header */}
+      <div className="bg-background/95 backdrop-blur-sm border-b sticky top-0 z-50">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/simulation-v2">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Simulation
+              </Button>
+            </Link>
+
+            <div className="border-l pl-4">
+              <h1 className="font-bold text-xl">After-Action Report</h1>
+              <p className="text-sm text-muted-foreground">
+                {scenario.ttxScript.name}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleDownloadReport}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download AAR/IP
+            </Button>
+            <ThemeToggle />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        {/* Executive Summary */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <ExecutiveSummaryDashboard />
+        </motion.div>
+
+        {/* Key Insights */}
+        <motion.div
+          className="mt-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <KeyInsightsSection />
+        </motion.div>
+
+        {/* Main Tabs */}
+        <motion.div
+          className="mt-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Tabs defaultValue="timeline" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="timeline">Timeline Replay</TabsTrigger>
+              <TabsTrigger value="analytics">Deep-Dive Analytics</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="timeline">
+              <InteractiveTimelineReplay />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <DeepDiveAnalytics />
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}

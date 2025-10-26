@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import React, { useState } from "react";
 import { ApiLoadingAnimation } from "./ApiLoadingAnimation";
 import { useRouter } from "next/navigation";
+import type { EmergencyPlan } from "@/lib/utils/emergencyPlan";
 
 const TTX_SCRIPT = `Hurricane Cronus – Tabletop Exercise (TTX)
 A Test of Dynamic Response and Population-Centric Planning
@@ -164,16 +165,28 @@ What was the biggest weakness in our current plan that the simulation exposed?
 
 What is one concrete action we will take to improve our emergency operations plan based on what we learned today?`;
 
-const ChatBox: React.FC = () => {
+interface ChatBoxProps {
+  selectedPlan: EmergencyPlan | null;
+}
+
+const ChatBox: React.FC<ChatBoxProps> = ({ selectedPlan }) => {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleStart = async () => {
+    if (!selectedPlan) {
+      alert('Please select a session from the sidebar first.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Convert the selected plan to a formatted JSON string for the prompt
+      const promptData = JSON.stringify(selectedPlan, null, 2);
+
       const response = await fetch(
         'https://knighthacks2025backend.onrender.com/simulate-flow',
         {
@@ -182,7 +195,7 @@ const ChatBox: React.FC = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: TTX_SCRIPT,
+            prompt: promptData,
           }),
         }
       );
@@ -210,14 +223,19 @@ const ChatBox: React.FC = () => {
   return (
     <>
       {isLoading && <ApiLoadingAnimation />}
-      <div className="absolute left-0 right-0 bottom-10 flex items-end justify-center pointer-events-none">
+      <div className="absolute left-0 right-0 bottom-10 flex flex-col items-center gap-2 pointer-events-none">
+        {!selectedPlan && (
+          <p className="text-sm text-muted-foreground font-mono">
+            ← Select a session to start
+          </p>
+        )}
         <Button
           onClick={handleStart}
-          disabled={isLoading}
+          disabled={isLoading || !selectedPlan}
           className="text-sm px-4 py-3 rounded font-mono pointer-events-auto"
           variant="default"
         >
-          Start
+          {selectedPlan ? 'Start Simulation' : 'Start'}
         </Button>
       </div>
     </>

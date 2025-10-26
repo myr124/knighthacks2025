@@ -171,23 +171,25 @@ function extractConcerns(reasoning: string): string[] {
   return concerns.slice(0, 4); // Limit to 4 concerns
 }
 
-// Generate operational periods
-function generateOperationalPeriods(): OperationalPeriod[] {
+// Generate operational periods for a specific count
+function generateOperationalPeriodsForCount(count: number): OperationalPeriod[] {
   const periods: OperationalPeriod[] = [];
   let hourOffset = -120;
 
-  const phases: Array<'planning' | 'preparation' | 'response' | 'recovery'> = [
-    'planning', 'planning', 'planning', 'planning',
-    'preparation', 'preparation', 'preparation', 'preparation',
-    'response', 'response', 'response',
-    'recovery', 'recovery'
-  ];
+  // Define phases dynamically based on count
+  // Roughly: first 30% planning, next 30% preparation, next 30% response, last 10% recovery
+  const getPhase = (index: number, total: number): 'planning' | 'preparation' | 'response' | 'recovery' => {
+    const ratio = index / total;
+    if (ratio < 0.3) return 'planning';
+    if (ratio < 0.6) return 'preparation';
+    if (ratio < 0.9) return 'response';
+    return 'recovery';
+  };
 
-  for (let i = 0; i < 13; i++) {
+  for (let i = 0; i < count; i++) {
     const startTime = `T${hourOffset >= 0 ? '+' : ''}${hourOffset}h`;
     const endTime = `T${hourOffset + 12 >= 0 ? '+' : ''}${hourOffset + 12}h`;
-    const dayNum = Math.floor((120 + hourOffset) / 24) + 1;
-    const period = (hourOffset % 24) < 12 ? 'AM' : 'PM';
+    const phase = getPhase(i, count);
 
     periods.push({
       id: `op-${i + 1}`,
@@ -195,13 +197,18 @@ function generateOperationalPeriods(): OperationalPeriod[] {
       startTime,
       endTime,
       label: `Period ${i + 1} (${startTime} to ${endTime})`,
-      phase: phases[i]
+      phase
     });
 
     hourOffset += 12;
   }
 
   return periods;
+}
+
+// Generate operational periods (default 13)
+function generateOperationalPeriods(): OperationalPeriod[] {
+  return generateOperationalPeriodsForCount(13);
 }
 
 // Generate placeholder injects (simplified - you can enhance these)
@@ -297,36 +304,84 @@ function calculateAggregates(responses: PersonaResponse[]): PeriodResult['aggreg
 
 /**
  * Transform ADK backend response to frontend ScenarioResults format
+ * Handles the actual ADK backend structure with list_sessions and state
  */
-export function transformADKToScenarioResults(adkData: ADKResponse[]): ScenarioResults {
-  // Filter out merger_agent and parse persona data
+export function transformADKToScenarioResults(adkData: any): ScenarioResults {
+  console.log('🔄 Starting ADK transformation...');
+
+  // Extract persona data from the actual ADK structure
   const personas: Array<{ authorId: string; data: ADKPersona }> = [];
 
-  for (const item of adkData) {
-    if (item.author === 'merger_agent') continue;
+  // Check if this is the new format with list_sessions
+  if (adkData.list_sessions && Array.isArray(adkData.list_sessions)) {
+    console.log('📋 Found list_sessions format');
 
-    // Try to parse from actions.stateDelta first, then content
-    let personaData: ADKPersona | null = null;
+    // Find the session with state data (usually the last one with populated state)
+    const sessionWithState = adkData.list_sessions.find((session: any) =>
+      session.state && Object.keys(session.state).length > 0
+    );
 
-    if (item.actions?.stateDelta) {
-      const key = Object.keys(item.actions.stateDelta)[0];
-      if (key) {
-        personaData = item.actions.stateDelta[key];
-      }
-    }
+    if (sessionWithState && sessionWithState.state) {
+      console.log('✅ Found session with state, processing personas...');
+      console.log('👥 Persona keys:', Object.keys(sessionWithState.state));
 
-    if (!personaData && item.content?.parts?.[0]?.text) {
-      try {
-        personaData = JSON.parse(item.content.parts[0].text);
-      } catch (e) {
-        console.warn(`Failed to parse persona data for ${item.author}:`, e);
-      }
-    }
-
-    if (personaData) {
-      personas.push({ authorId: item.author, data: personaData });
+      // Extract each persona from the state object
+      Object.entries(sessionWithState.state).forEach(([personaKey, personaData]: [string, any]) => {
+        if (personaData && personaData.response && Array.isArray(personaData.response)) {
+          personas.push({
+            authorId: personaKey,
+            data: personaData as ADKPersona
+          });
+          console.log(`  ✓ Loaded persona: ${personaKey} with ${personaData.response.length} responses`);
+        }
+      });
+    } else {
+      console.warn('⚠️  No session with state data found');
     }
   }
+  // Fallback: try old format with array of ADKResponse
+  else if (Array.isArray(adkData)) {
+    console.log('📋 Found array format (old ADK structure)');
+
+    for (const item of adkData) {
+      if (item.author === 'merger_agent') continue;
+
+      // Try to parse from actions.stateDelta first, then content
+      let personaData: ADKPersona | null = null;
+
+      if (item.actions?.stateDelta) {
+        const key = Object.keys(item.actions.stateDelta)[0];
+        if (key) {
+          personaData = item.actions.stateDelta[key];
+        }
+      }
+
+      if (!personaData && item.content?.parts?.[0]?.text) {
+        try {
+          personaData = JSON.parse(item.content.parts[0].text);
+        } catch (e) {
+          console.warn(`Failed to parse persona data for ${item.author}:`, e);
+        }
+      }
+
+      if (personaData) {
+        personas.push({ authorId: item.author, data: personaData });
+      }
+    }
+  } else {
+    console.error('❌ Unknown ADK data format:', adkData);
+  }
+
+  console.log(`📊 Total personas loaded: ${personas.length}`);
+
+  // Determine the number of periods from the personas
+  // Use the maximum response array length from all personas
+  const maxPeriods = personas.reduce((max, persona) => {
+    const responseLength = persona.data.response?.length || 0;
+    return Math.max(max, responseLength);
+  }, 0);
+
+  console.log(`📅 Max periods found in persona responses: ${maxPeriods}`);
 
   // Generate location data for each persona
   const locationMap = new Map();
@@ -339,8 +394,8 @@ export function transformADKToScenarioResults(adkData: ADKResponse[]): ScenarioR
     locationMap.set(persona.authorId, locationData);
   });
 
-  // Generate operational periods
-  const operationalPeriods = generateOperationalPeriods();
+  // Generate operational periods based on actual response count
+  const operationalPeriods = generateOperationalPeriodsForCount(maxPeriods);
 
   // Build period results
   const periodResults: PeriodResult[] = operationalPeriods.map(op => {
@@ -350,8 +405,36 @@ export function transformADKToScenarioResults(adkData: ADKResponse[]): ScenarioR
       const { authorId, data } = persona;
       const periodIndex = op.periodNumber - 1;
 
-      if (!data.response || !data.response[periodIndex]) {
-        console.warn(`Missing response for ${authorId} at period ${op.periodNumber}`);
+      // Check if this persona has a response for this period
+      if (!data.response || periodIndex >= data.response.length) {
+        console.warn(`⚠️  Persona ${authorId} has no response for period ${op.periodNumber} (has ${data.response?.length || 0} responses)`);
+
+        // Use last available response as fallback, or skip if no responses at all
+        if (!data.response || data.response.length === 0) {
+          return;
+        }
+
+        // Use the last response they have as a fallback
+        const lastResponse = data.response[data.response.length - 1];
+        const locationData = locationMap.get(authorId);
+        const position = calculatePersonaPosition(locationData, op.periodNumber);
+        const demographics = extractDemographics(data, authorId);
+
+        personaResponses.push({
+          personaId: authorId,
+          personaType: inferPersonaType(authorId),
+          personaName: generatePersonaName(authorId, data.bio),
+          bio: data.bio,
+          demographics,
+          decision: mapDecision(lastResponse.decision),
+          sentiment: mapSentiment(lastResponse.sentiment),
+          reasoning: lastResponse.personality_reasoning + ' [Using last available response]',
+          actions: lastResponse.actions_taken,
+          concerns: extractConcerns(lastResponse.personality_reasoning),
+          needsAssistance: authorId.includes('lowincome') || authorId.includes('retired') || authorId.includes('underemployed'),
+          location: mapLocation(lastResponse.location),
+          position
+        });
         return;
       }
 
@@ -391,6 +474,8 @@ export function transformADKToScenarioResults(adkData: ADKResponse[]): ScenarioR
     };
   });
 
+  console.log(`✅ Transformation complete: ${periodResults.length} periods, ${personas.length} personas`);
+
   return {
     id: `scenario-adk-${Date.now()}`,
     ttxScript: {
@@ -400,8 +485,8 @@ export function transformADKToScenarioResults(adkData: ADKResponse[]): ScenarioR
       scenarioType: 'hurricane',
       location: 'Orlando, FL',
       startTime: 'T-120h',
-      endTime: 'T+24h',
-      totalOperationalPeriods: 13
+      endTime: `T+${(maxPeriods * 12) - 120}h`,
+      totalOperationalPeriods: maxPeriods
     },
     periodResults,
     createdAt: new Date(),

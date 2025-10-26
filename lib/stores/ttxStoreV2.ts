@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { ScenarioResults, PeriodResult, OperationalPeriod, Inject, EOCAction, PersonaResponse, PersonaMapData } from '@/lib/types/ttx';
 import { generatePersonaLocation, calculatePersonaPosition, getPersonaLocationStatus } from '@/lib/utils/personaPositions';
 import { generatePersonaDemographics } from '@/lib/utils/personaDemographics';
+import { transformADKToScenarioResults } from '@/lib/utils/adkTransformer';
 
 interface TTXStoreV2 {
   scenario: ScenarioResults | null;
@@ -439,6 +440,44 @@ export const useTTXStoreV2 = create<TTXStoreV2>((set, get) => {
     setSelectedEvent: (event: Inject | EOCAction | null) => set({ selectedEvent: event }),
 
     initializeScenario: async () => {
+      // First, check if we have ADK data from localStorage
+      if (typeof window !== 'undefined') {
+        const storedData = localStorage.getItem('scenarioData');
+
+        if (storedData) {
+          console.log('🔍 Found ADK data in localStorage, loading...');
+
+          try {
+            const adkData = JSON.parse(storedData);
+            console.log('📊 Raw ADK Data:', adkData);
+            console.log('📊 ADK Data type:', typeof adkData);
+            console.log('📊 Is Array:', Array.isArray(adkData));
+            console.log('📊 Keys:', Object.keys(adkData));
+
+            // Use the existing ADK transformer
+            console.log('🔄 Transforming ADK data using transformADKToScenarioResults...');
+            const scenario = transformADKToScenarioResults(adkData);
+
+            // Clear localStorage to avoid using stale data
+            localStorage.removeItem('scenarioData');
+
+            // Set the scenario in the store
+            set({ scenario, currentPeriod: 1 });
+            console.log('✅ Successfully loaded ADK scenario data with', scenario.periodResults.length, 'periods');
+            console.log('✅ First period has', scenario.periodResults[0]?.personaResponses?.length, 'personas');
+            return;
+          } catch (error) {
+            console.error('❌ Error transforming ADK data:', error);
+            console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+            localStorage.removeItem('scenarioData');
+          }
+        } else {
+          console.log('ℹ️  No scenarioData found in localStorage');
+        }
+      }
+
+      // Fallback: No localStorage data, generate scenario via API
+      console.log('⚠️  No ADK data in localStorage, falling back to API generation');
       get().generateScenario(null);
     },
 
