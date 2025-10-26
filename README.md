@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+![ezgif-4c6a86316dd8fd](https://github.com/user-attachments/assets/7adb10a2-4517-4929-b0ae-9956b335c269)
+
 Emergent is a web-based, AI-powered Tabletop Exercise (TTX) platform that allows emergency managers to simulate disaster scenarios and their impact on a community. It provides a safe, controlled, and highly detailed environment to practice, test, and refine emergency plans, with a focus on improving communication with vulnerable populations.
 
 ## The Problem
